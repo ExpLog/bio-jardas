@@ -1,0 +1,22 @@
+[project]
+name = "bio-jardas"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = [
+    "disnake>=2.10.1",
+    "pydantic-settings>=2.8.1",
+    "structlog>=25.4.0",
+]
+
+
+[dependency-groups]
+dev = [
+    "ipython>=9.4.0",
+    "ruff>=0.12.7",
+]
+
+
+[tool.ruff]
+lint.select = ["ALL"]  # TODO: change this
+lint.ignore = ["D"]
