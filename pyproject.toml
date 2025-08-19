@@ -4,8 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
+    "alembic>=1.16.4",
     "disnake>=2.10.1",
+    "psycopg[binary]>=3.2.9",
     "pydantic-settings>=2.8.1",
+    "sqlalchemy[asyncio]>=2.0.43",
     "structlog>=25.4.0",
 ]
 
@@ -19,4 +22,24 @@ dev = [
 
 [tool.ruff]
 lint.select = ["ALL"]  # TODO: change this
-lint.ignore = ["D"]
+lint.ignore = ["D", "COM"]
+
+
+[tool.alembic]
+script_location = "%(here)s/migrations"
+version_locations = ["%(here)s/migrations/versions"]
+
+file_template = "%%(year)d%%(month).2d%%(day).2d%%(hour).2d%%(minute).2d_%%(rev)s_%%(slug)s"
+truncate_slug_length = "40"
+output_encoding = "utf-8"
+
+prepend_sys_path = [
+    "."
+]
+
+[[tool.alembic.post_write_hooks]]
+name = "ruff"
+type = "module"
+module = "ruff"
+options = "check --fix REVISION_SCRIPT_FILENAME"
+

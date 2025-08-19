@@ -12,11 +12,11 @@ from bio_jardas.observability import (
 
 
 class BioJardas(Bot):
-    async def on_ready(self):
-        logger.info(f"BioJardas logged in as {self.user}")
+    async def on_ready(self) -> None:
+        logger.info("BioJardas logged in as %s", self.user)
 
     @classmethod
-    def build(cls):
+    def build(cls) -> BioJardas:
         intents = Intents.default()
         intents.message_content = True
         return cls(command_prefix="$", intents=intents)

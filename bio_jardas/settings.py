@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, constr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import URL
 
 
 class DiscordConfig(BaseModel):
@@ -14,18 +15,26 @@ class PostgresConfig(BaseModel):
     database: str
     user: str
     password: str
+
     connection_timeout: float = 60
-    command_timeout: float = 60
-    pool_min_size: int = 10
-    pool_max_size: int = 10
-    # Number of queries after a connection is closed and replaced
-    # with a new connection
-    pool_max_queries: int = 50000
-    # Number of seconds after which inactive connections in the
-    # pool will be closed. Pass `0` to disable this mechanism
-    pool_max_inactive_connection_lifetime: float = 300
+
+    pool_size: int = 10
+    pool_max_overflow: int = 10
+    pool_timeout: int = 30
+    pool_recycle: int = 300
 
     model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+    @property
+    def url(self) -> URL:
+        return URL.create(
+            drivername="postgresql+psycopg_async",
+            username=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+            database=self.database,
+        )
 
 
 class Settings(BaseSettings):
