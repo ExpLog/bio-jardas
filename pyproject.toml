@@ -22,7 +22,7 @@ dev = [
 
 [tool.ruff]
 lint.select = ["ALL"]  # TODO: change this
-lint.ignore = ["D", "COM"]
+lint.ignore = ["D", "COM", "ANN"]
 
 
 [tool.alembic]

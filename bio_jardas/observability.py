@@ -24,7 +24,7 @@ STRUCTLOG_DEFAULT_PROCESSORS = (
 THIRD_PARTY_LOGGERS = {
     # add propagate: False to mute
     "disnake.client": {"level": "INFO"},
-    "disnake.gateway": {"level": "WARNING"},
+    "disnake.gateway": {"level": "INFO"},
 }
 
 
