@@ -1,21 +1,22 @@
 """Add MessageGroup and Message
 
-Revision ID: bf177fc892f9
+Revision ID: dd4cbb78f072
 Revises:
-Create Date: 2025-08-22 15:33:04.897829
+Create Date: 2025-08-22 15:50:15.327224
 
 """
 
-from collections.abc import Sequence
+from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
-revision: str = "bf177fc892f9"
-down_revision: str | Sequence[str] | None = None
-branch_labels: str | Sequence[str] | None = None
-depends_on: str | Sequence[str] | None = None
+revision: str = "dd4cbb78f072"
+down_revision: Union[str, Sequence[str], None] = None
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
@@ -36,13 +37,13 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column("id", sa.Integer(), sa.Identity(always=True), nullable=False),
+        sa.Column("id", sa.BigInteger(), sa.Identity(always=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
         "message",
         sa.Column("text", sa.Text(), nullable=False),
-        sa.Column("group_id", sa.Integer(), nullable=False),
+        sa.Column("group_id", sa.BigInteger(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -55,7 +56,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column("id", sa.Integer(), sa.Identity(always=True), nullable=False),
+        sa.Column("id", sa.BigInteger(), sa.Identity(always=True), nullable=False),
         sa.ForeignKeyConstraint(["group_id"], ["message_group.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )

@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from sqlalchemy import Identity
+from sqlalchemy import Identity, BigInteger
 from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
@@ -15,7 +15,7 @@ class Base(DeclarativeBase):
     __abstract__ = True
     metadata = metadata
 
-    id: Mapped[int] = mapped_column(Identity(always=True), primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
 
 
 engine = create_async_engine(
