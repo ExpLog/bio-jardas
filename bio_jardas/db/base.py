@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from sqlalchemy import Identity, BigInteger
+from sqlalchemy import BigInteger, Identity
 from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
@@ -33,4 +33,4 @@ engine = create_async_engine(
         "keepalives_count": 5,
     },
 )
-AsyncSession = async_sessionmaker(engine, expire_on_commit=False)
+Session = async_sessionmaker(engine, expire_on_commit=False)

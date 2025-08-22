@@ -9,7 +9,7 @@ from bio_jardas.db.base import Base
 class MessageGroup(Base):
     __tablename__ = "message_group"
 
-    name: Mapped[str] = mapped_column(sa.String(255), nullable=False)
+    name: Mapped[str] = mapped_column(sa.String(255), nullable=False, unique=True)
 
     messages: Mapped[list["Message"]] = relationship(
         back_populates="group",
