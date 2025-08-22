@@ -6,7 +6,7 @@ PYTHONPATH := $(PYTHONPATH)
 .PHONY: py/help
 py/help:
 	@echo "Python targets:"
-	@echo "  py/install                 - Install Python and project dependences"
+	@echo "  py/install                 - Install Python and project dependencies"
 	@echo "  py/fmt                     - Format Python code"
 	@echo "  py/lint                    - Lint Python code"
 	@echo

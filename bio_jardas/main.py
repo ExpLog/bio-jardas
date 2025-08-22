@@ -35,7 +35,7 @@ class BioJardas(Bot):
             return
 
         await logger.awarning(
-            f"Ignoring error in command",
+            "Ignoring error in command",
             command=command,
             exception=str(exception),
         )

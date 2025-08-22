@@ -5,6 +5,7 @@ description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.16.4",
+    "cyclopts>=3.22.5",
     "disnake>=2.10.1",
     "psycopg[binary]>=3.2.9",
     "pydantic-settings>=2.8.1",
@@ -41,5 +42,4 @@ prepend_sys_path = [
 name = "ruff"
 type = "module"
 module = "ruff"
-options = "check --fix REVISION_SCRIPT_FILENAME"
-
+options = "format REVISION_SCRIPT_FILENAME"

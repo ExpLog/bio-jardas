@@ -1,5 +1,9 @@
 import sqlalchemy as sa
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy import Identity
+from sqlalchemy.ext.asyncio import (
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from bio_jardas.settings import SETTINGS
@@ -11,7 +15,7 @@ class Base(DeclarativeBase):
     __abstract__ = True
     metadata = metadata
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Identity(always=True), primary_key=True)
 
 
 engine = create_async_engine(
@@ -29,4 +33,4 @@ engine = create_async_engine(
         "keepalives_count": 5,
     },
 )
-SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+AsyncSession = async_sessionmaker(engine, expire_on_commit=False)
