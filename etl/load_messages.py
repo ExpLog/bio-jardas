@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -93,6 +94,7 @@ def cli(csv: Path):
         asyncio.run(load_data(csv))
     except DatabaseNotEmptyError as ex:
         logger.error(str(ex))
+        sys.exit(1)
 
 
 if __name__ == "__main__":
