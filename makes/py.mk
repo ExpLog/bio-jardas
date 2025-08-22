@@ -15,7 +15,7 @@ py/help:
 .PHONY: py/install
 py/install:
 	uv lock --check
-	uv sync --frozen
+	uv sync --frozen --all-groups
 
 
 .PHONY: py/fmt

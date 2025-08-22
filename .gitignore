@@ -14,3 +14,7 @@ wheels/
 
 # secrets
 .env
+
+# etl data
+etl/data
+!etl/data/.keep

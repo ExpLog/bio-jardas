@@ -44,6 +44,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         frozen=True,
+        extra="ignore",
         case_sensitive=False,
         str_strip_whitespace=True,
         env_file=".env",
