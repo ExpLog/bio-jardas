@@ -25,7 +25,7 @@ class MessageCog(Cog):
         channel = message.channel
         message_service = MessageService(session)
 
-        choice = await message_service.select_message_group_choice(
+        choice = await message_service.get_random_message_group_choice(
             author.id, channel.id
         )
         if not choice:

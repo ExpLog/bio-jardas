@@ -13,7 +13,7 @@ class MessageService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def select_message_group_choice(
+    async def get_random_message_group_choice(
         self, user_id: int, channel_id: int
     ) -> MessageGroupChoice | None:
         query = (
