@@ -28,3 +28,8 @@ py/fmt:
 py/lint:
 	uv run ruff check .
 	uv run ruff format --check --diff .
+
+
+.PHONY: py/ipython
+py/ipython:
+	PYTHONSTARTUP=".ipython_startup.py" uv run ipython

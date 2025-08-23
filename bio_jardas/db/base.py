@@ -1,3 +1,5 @@
+from functools import wraps
+
 import sqlalchemy as sa
 from sqlalchemy import BigInteger, Identity
 from sqlalchemy.ext.asyncio import (
@@ -34,3 +36,13 @@ engine = create_async_engine(
     },
 )
 Session = async_sessionmaker(engine, expire_on_commit=False)
+
+
+def transaction(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        async with Session() as session:
+            async with session.begin():
+                return await func(*args, **kwargs, session=session)
+
+    return wrapper

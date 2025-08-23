@@ -13,7 +13,8 @@ from bio_jardas.db import Message, MessageGroup
 from bio_jardas.db.base import Session
 
 logger = get_logger()
-app = App(name="load csv")
+app = App(name="load_messages")
+ETL_SYNTHETIC_SNOWFLAKE_ID = 0
 
 
 class DatabaseNotEmptyError(Exception):
@@ -53,7 +54,10 @@ async def load_csv(session: AsyncSession, csv_path: Path) -> InsertedRows:
 
     df["message_group"].unique().tolist()
     message_group_names = df["message_group"].unique().tolist()
-    message_groups = [MessageGroup(name=name) for name in message_group_names]
+    message_groups = [
+        MessageGroup(name=name, created_by=ETL_SYNTHETIC_SNOWFLAKE_ID)
+        for name in message_group_names
+    ]
     session.add_all(message_groups)
     await session.flush()
 
@@ -61,7 +65,11 @@ async def load_csv(session: AsyncSession, csv_path: Path) -> InsertedRows:
 
     message_group_name_to_id = {g.name: g.id for g in message_groups}
     messages = [
-        {"text": text, "group_id": message_group_name_to_id[group]}
+        {
+            "text": text,
+            "group_id": message_group_name_to_id[group],
+            "created_by": ETL_SYNTHETIC_SNOWFLAKE_ID,
+        }
         for group, text in df.itertuples(index=False)
     ]
     await session.execute(insert(Message), messages)

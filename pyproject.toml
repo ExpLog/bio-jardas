@@ -28,7 +28,8 @@ module-root = ""
 
 [tool.ruff]
 lint.select = ["ALL"]  # TODO: change this
-lint.ignore = ["D", "COM", "ANN", "SIM", "EM", "TRY"]
+lint.ignore = ["D", "COM", "ANN", "SIM", "EM", "TRY", "TD", "FIX", "S311", "RUF012"]
+exclude = [".ipython_startup.py"]
 
 [tool.alembic]
 script_location = "%(here)s/migrations"
