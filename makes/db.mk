@@ -16,7 +16,7 @@ db/revision:
 
 .PHONY: db/upgrade
 db/upgrade:
-	uv run alembic upgrade head
+	uv run alembic upgrade $(if $(revision),$(revision),head)
 
 .PHONY: db/downgrade
 db/downgrade:

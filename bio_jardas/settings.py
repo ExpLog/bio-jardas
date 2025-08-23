@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict, constr
+from typing import Annotated
+
+from pydantic import BaseModel, ConfigDict, StringConstraints
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
 
@@ -40,7 +42,7 @@ class PostgresConfig(BaseModel):
 class Settings(BaseSettings):
     discord: DiscordConfig
     postgres: PostgresConfig
-    log_level: constr(to_upper=True)
+    log_level: Annotated[str, StringConstraints(to_upper=True)]
 
     model_config = SettingsConfigDict(
         frozen=True,

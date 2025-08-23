@@ -1,3 +1,5 @@
+import random
+
 import structlog
 from disnake import Message as DiscordMessage
 from disnake.ext.commands import Bot, Cog, Context
@@ -5,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bio_jardas.db.base import transaction
 from bio_jardas.decorators import skip_bots_and_commands
+from bio_jardas.services.config import ConfigService
 from bio_jardas.services.message import MessageService
 
 logger = structlog.stdlib.get_logger()
@@ -23,7 +26,12 @@ class MessageCog(Cog):
     ) -> None:
         author = message.author
         channel = message.channel
+        config_service = ConfigService(session)
         message_service = MessageService(session)
+
+        intensity = await config_service.get_intensity()
+        if random.random() > intensity.reply_probability():
+            return
 
         choice = await message_service.get_random_message_group_choice(
             author.id, channel.id

@@ -2,8 +2,8 @@ make docker/downv
 make docker/up
 
 sleep 2
-make db/upgrade
-make db/revision m="initial message related models"
+#make db/upgrade revision="d9830eb71627"
+#make db/revision m="add config"
 make db/upgrade
 
 sleep 1
