@@ -1,9 +1,8 @@
-from __future__ import annotations
-
 import structlog
 from disnake import Intents
 from disnake.ext.commands import Bot, CommandError, Context
 
+from bio_jardas.cogs.config import ConfigCog
 from bio_jardas.cogs.message import MessageCog
 from bio_jardas.observability import (
     THIRD_PARTY_LOGGERS,
@@ -17,7 +16,7 @@ class BioJardas(Bot):
         logger.info("BioJardas logged in as %s", self.user)
 
     @classmethod
-    def build(cls) -> BioJardas:
+    def build(cls) -> "BioJardas":
         intents = Intents.default()
         intents.message_content = True
         return cls(command_prefix="$", intents=intents)
@@ -36,7 +35,7 @@ class BioJardas(Bot):
 
         await logger.awarning(
             "Ignoring error in command",
-            command=command,
+            command=f"{cog.qualified_name}.{command.qualified_name}",
             exception=str(exception),
         )
 
@@ -51,4 +50,5 @@ if __name__ == "__main__":
     logger.info("Starting BioJardas")
     jardas = BioJardas.build()
     jardas.add_cog(MessageCog(jardas))
+    jardas.add_cog(ConfigCog(jardas))
     jardas.run(SETTINGS.discord.token)

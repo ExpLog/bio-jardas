@@ -1,8 +1,12 @@
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from functools import wraps
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy import BigInteger, Identity
 from sqlalchemy.ext.asyncio import (
+    AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
@@ -38,7 +42,7 @@ engine = create_async_engine(
 Session = async_sessionmaker(engine, expire_on_commit=False)
 
 
-def transaction(func):
+def transactional(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
         async with Session() as session:
@@ -46,3 +50,10 @@ def transaction(func):
                 return await func(*args, **kwargs, session=session)
 
     return wrapper
+
+
+@asynccontextmanager
+async def transaction() -> AsyncGenerator[AsyncSession, Any]:
+    async with Session() as session:
+        async with session.begin():
+            yield session

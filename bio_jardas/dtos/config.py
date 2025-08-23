@@ -1,16 +1,16 @@
-from enum import IntEnum
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
 
 
-class ReplyIntensityEnum(IntEnum):
-    SLEEPING = 0
-    PUNY = 100
-    MILD = 200
-    NORMAL = 300
-    ANNOYING = 400
-    INTENSE = 1000
-    EDGE_LORD = 400
+class ReplyIntensityEnum(StrEnum):
+    SLEEPING = "sleeping"
+    PUNY = "puny"
+    MILD = "mild"
+    NORMAL = "normal"
+    ANNOYING = "annoying"
+    INTENSE = "intense"
+    EDGELORD = "edgelord"
 
 
 class ReplyIntensityConfig(BaseModel):
@@ -35,7 +35,7 @@ class ReplyIntensityConfig(BaseModel):
                 probability = 1 / 13
             case ReplyIntensityEnum.INTENSE:
                 probability = 1 / 10
-            case ReplyIntensityEnum.EDGE_LORD:
+            case ReplyIntensityEnum.EDGELORD:
                 probability = 1.0
             case _:
                 probability = 1 / 17

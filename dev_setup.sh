@@ -2,7 +2,7 @@ make docker/downv
 make docker/up
 
 sleep 2
-#make db/upgrade revision="d9830eb71627"
+#make db/upgrade revision="916737379902"
 #make db/revision m="add config"
 make db/upgrade
 

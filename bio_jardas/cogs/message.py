@@ -5,7 +5,7 @@ from disnake import Message as DiscordMessage
 from disnake.ext.commands import Bot, Cog, Context
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bio_jardas.db.base import transaction
+from bio_jardas.db.base import transactional
 from bio_jardas.decorators import skip_bots_and_commands
 from bio_jardas.services.config import ConfigService
 from bio_jardas.services.message import MessageService
@@ -20,7 +20,7 @@ class MessageCog(Cog):
     # ruff: noqa: ARG002
     @Cog.listener("on_message")
     @skip_bots_and_commands
-    @transaction
+    @transactional
     async def reply(
         self, message: DiscordMessage, *, context: Context[Bot], session: AsyncSession
     ) -> None:

@@ -50,7 +50,7 @@ def upgrade() -> None:
     # ### end Alembic commands ###
     op.execute("""
         INSERT INTO config(name, data)
-        VALUES ('intensity', '{"intensity": 300}'::json)
+        VALUES ('intensity', '{"intensity": "normal"}'::json)
     """)
 
 
