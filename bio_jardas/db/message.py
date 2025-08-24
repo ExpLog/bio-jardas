@@ -26,6 +26,7 @@ class MessageGroup(Base):
     )
 
     created_by: Mapped[int] = mapped_column(
+        sa.BigInteger,
         nullable=False,
         comment="Snowflake id of the user. 0 for legacy.",
     )
@@ -55,6 +56,7 @@ class Message(Base):
     )
 
     created_by: Mapped[int] = mapped_column(
+        sa.BigInteger,
         nullable=False,
         comment="Snowflake id of the user. 0 for legacy.",
     )
@@ -92,7 +94,9 @@ class MessageGroupChoice(Base):
     group: Mapped["MessageGroup"] = relationship(
         back_populates="available_choices", lazy="raise"
     )
-    weight: Mapped[int] = mapped_column(nullable=False, default=1, server_default="1")
+    weight: Mapped[float] = mapped_column(
+        nullable=False, default=1.0, server_default="1.0"
+    )
     is_channel: Mapped[bool] = mapped_column(
         nullable=False,
         default=False,
@@ -107,6 +111,7 @@ class MessageGroupChoice(Base):
     )
 
     created_by: Mapped[int] = mapped_column(
+        sa.BigInteger,
         nullable=False,
         comment="Snowflake id of the user. 0 for legacy.",
     )

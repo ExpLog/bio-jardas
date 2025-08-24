@@ -1,6 +1,7 @@
 import random
 
 import structlog
+from disnake.ext.commands import Bot
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,9 +9,20 @@ from bio_jardas.db import Message, MessageGroup, MessageGroupChoice
 
 logger = structlog.stdlib.get_logger()
 
+DEFAULT_CHANNEL_MESSAGE_GROUPS = {
+    "dark_joke": 1.0,
+    "shower_thought": 1.0,
+    "catcall": 1.0,
+    "generic_seldom": 2.0,
+    "generic_sometimes": 4.0,
+    "user_added_legacy": 5.0,
+    "generic_often": 8.0,
+}
+
 
 class MessageService:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, bot: Bot, session: AsyncSession):
+        self.bot = bot
         self.session = session
 
     async def get_random_message_group_choice(
@@ -28,8 +40,7 @@ class MessageService:
                 author_id=user_id,
                 channel_id=channel_id,
             )
-            # TODO: add default choice
-            return None
+            weights = await self.create_default_message_group_choices(channel_id)
 
         return random.choices(weights, [sw.weight for sw in weights])[0]
 
@@ -41,3 +52,23 @@ class MessageService:
             .limit(1)
         )
         return await self.session.scalar(query)
+
+    async def create_default_message_group_choices(
+        self, channel_id: int
+    ) -> list[MessageGroupChoice]:
+        query = select(MessageGroup).where(
+            MessageGroup.name.in_(DEFAULT_CHANNEL_MESSAGE_GROUPS.keys())
+        )
+        message_groups = (await self.session.scalars(query)).all()
+        message_group_choices = [
+            MessageGroupChoice(
+                snowflake_id=channel_id,
+                group_id=mg.id,
+                weight=DEFAULT_CHANNEL_MESSAGE_GROUPS[mg.name],
+                is_channel=True,
+                created_by=self.bot.user.id,
+            )
+            for mg in message_groups
+        ]
+        self.session.add_all(message_group_choices)
+        return message_group_choices

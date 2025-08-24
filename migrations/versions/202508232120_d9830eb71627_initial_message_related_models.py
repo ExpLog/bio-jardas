@@ -29,7 +29,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "created_by",
-            sa.Integer(),
+            sa.BigInteger(),
             nullable=False,
             comment="Snowflake id of the user. 0 for legacy.",
         ),
@@ -56,7 +56,7 @@ def upgrade() -> None:
         sa.Column("group_id", sa.BigInteger(), nullable=False),
         sa.Column(
             "created_by",
-            sa.Integer(),
+            sa.BigInteger(),
             nullable=False,
             comment="Snowflake id of the user. 0 for legacy.",
         ),
@@ -90,7 +90,7 @@ def upgrade() -> None:
         "message_group_choice",
         sa.Column("snowflake_id", sa.BigInteger(), nullable=False),
         sa.Column("group_id", sa.BigInteger(), nullable=False),
-        sa.Column("weight", sa.Integer(), server_default="1", nullable=False),
+        sa.Column("weight", sa.Float(), server_default="1.0", nullable=False),
         sa.Column(
             "is_channel",
             sa.Boolean(),
@@ -107,7 +107,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "created_by",
-            sa.Integer(),
+            sa.BigInteger(),
             nullable=False,
             comment="Snowflake id of the user. 0 for legacy.",
         ),

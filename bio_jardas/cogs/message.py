@@ -27,12 +27,13 @@ class MessageCog(Cog):
         author = message.author
         channel = message.channel
         config_service = ConfigService(session)
-        message_service = MessageService(session)
+        message_service = MessageService(self.bot, session)
 
         intensity = await config_service.get_intensity()
         if random.random() > intensity.reply_probability():
             return
 
+        # TODO: add the -mos dynamic message group
         choice = await message_service.get_random_message_group_choice(
             author.id, channel.id
         )
