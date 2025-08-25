@@ -33,7 +33,7 @@ class ConfigService:
         return ReplyIntensityConfig(**config.data)
 
     async def update_intensity(self, reply_intensity: ReplyIntensityEnum) -> None:
-        query = select(Config).where(Config.name == "intensity")
+        query = select(Config).where(Config.name == "intensity").with_for_update()
         config = await self.session.scalar(query)
         if not config:
             await logger.awarning("Config not found", config="intensity")
