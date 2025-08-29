@@ -3,7 +3,7 @@ from disnake import Intents
 from disnake.ext.commands import Bot, CommandError, Context
 
 from bio_jardas.cogs.config import ConfigCog
-from bio_jardas.cogs.message import MessageCog
+from bio_jardas.cogs.reply import ReplyCog
 from bio_jardas.observability import (
     THIRD_PARTY_LOGGERS,
     instrument_logs,
@@ -49,6 +49,6 @@ if __name__ == "__main__":
     logger = structlog.stdlib.get_logger()
     logger.info("Starting BioJardas")
     jardas = BioJardas.build()
-    jardas.add_cog(MessageCog(jardas))
+    jardas.add_cog(ReplyCog(jardas))
     jardas.add_cog(ConfigCog(jardas))
     jardas.run(SETTINGS.discord.token)

@@ -14,7 +14,7 @@ from bio_jardas.services.message import ChannelAlreadyRegisteredError, MessageSe
 logger = structlog.stdlib.get_logger()
 
 
-class MessageCog(Cog):
+class ReplyCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -59,7 +59,7 @@ class MessageCog(Cog):
     # TODO: manual tests
     @reply_group.command("add_channel")
     async def add_channel(self, context: Context):
-        with transaction() as session:
+        async with transaction() as session:
             message_service = MessageService(self.bot, session)
 
             try:
@@ -84,7 +84,7 @@ class MessageCog(Cog):
     @reply_group.command("remove_channel")
     async def remove_channel(self, context: Context, *, message_group_names: str):
         names = re.split(r"[\s,]", message_group_names)
-        with transaction() as session:
+        async with transaction() as session:
             message_service = MessageService(self.bot, session)
             await message_service.delete_message_group_choices(
                 context.channel.id, names
