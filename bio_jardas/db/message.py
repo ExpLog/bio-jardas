@@ -55,6 +55,7 @@ class Message(Base):
         back_populates="messages", lazy="raise"
     )
 
+    # TODO: add some moderation metadata?
     created_by: Mapped[int] = mapped_column(
         sa.BigInteger,
         nullable=False,
@@ -94,6 +95,7 @@ class MessageGroupChoice(Base):
     group: Mapped["MessageGroup"] = relationship(
         back_populates="available_choices", lazy="raise"
     )
+
     weight: Mapped[float] = mapped_column(
         nullable=False, default=1.0, server_default="1.0"
     )
