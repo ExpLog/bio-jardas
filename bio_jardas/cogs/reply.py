@@ -7,6 +7,7 @@ from disnake.ext.commands import Bot, Cog, Context, group
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bio_jardas.db.base import transaction, transactional
+from bio_jardas.db.repositories.message import MessageRepo
 from bio_jardas.decorators import skip_bots_and_commands
 from bio_jardas.services.config import ConfigService
 from bio_jardas.services.message import ChannelAlreadyRegisteredError, MessageService
@@ -35,20 +36,17 @@ class ReplyCog(Cog):
             return
 
         # TODO: add the -mos dynamic message group
-        choice = await message_service.get_random_message_group_choice(
-            author.id, channel.id
-        )
-        if not choice:
+        reply = await message_service.get_reply(author.id, channel.id)
+        if not reply:
             return
-        response = await message_service.get_random_message(choice.group_id)
 
-        await message.reply(response.text)
+        await message.reply(reply.text)
         await logger.ainfo(
             "Replied to message",
             author_id=author.id,
             channel_id=channel.id,
-            message_group_id=response.group_id,
-            message_id=response.id,
+            message_group_id=reply.group_id,
+            message_id=reply.id,
         )
 
     @group(name="reply", invoke_without_command=True)
@@ -56,7 +54,6 @@ class ReplyCog(Cog):
         await context.send("Available subcommands: add_channel, remove_channel")
 
     # TODO: improve ux flow
-    # TODO: manual tests
     @reply_group.command("add_channel")
     async def add_channel(self, context: Context):
         async with transaction() as session:
@@ -82,12 +79,19 @@ class ReplyCog(Cog):
         await context.reply("Registered channel with default message groups")
 
     @reply_group.command("remove_channel")
-    async def remove_channel(self, context: Context, *, message_group_names: str):
-        names = re.split(r"[\s,]", message_group_names)
+    async def remove_channel(
+        self, context: Context, *, message_group_names: str | None = None
+    ):
+        names = re.split(r"[\s,]", message_group_names) if message_group_names else None
         async with transaction() as session:
-            message_service = MessageService(self.bot, session)
-            await message_service.delete_message_group_choices(
+            message_repo = MessageRepo(session)
+            deleted_count = await message_repo.delete_message_group_choices(
                 context.channel.id, names
             )
-            # TODO: add logging
-            # TODO: add reply
+            await logger.ainfo(
+                "Removed replies from channel",
+                author_id=context.author.id,
+                channel_id=context.channel.id,
+                deleted_count=deleted_count,
+            )
+        await context.reply(f"Removed {deleted_count} message groups from channel")

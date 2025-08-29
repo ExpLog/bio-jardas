@@ -4,9 +4,9 @@ import structlog
 from disnake.ext.commands import Bot, Cog, CommandError, Context, command
 
 from bio_jardas.db.base import transaction
+from bio_jardas.db.repositories.message import MessageRepo
 from bio_jardas.dtos.config import ReplyIntensityEnum
 from bio_jardas.services.config import ConfigService
-from bio_jardas.services.message import MessageService
 
 logger = structlog.stdlib.get_logger()
 
@@ -44,8 +44,8 @@ class ConfigCog(Cog):
             config_service = ConfigService(session)
             intensity_config = await config_service.get_intensity()
 
-            message_service = MessageService(self.bot, session)
-            assigned_message_groups = await message_service.get_assigned_message_groups(
+            message_repo = MessageRepo(session)
+            assigned_message_groups = await message_repo.get_assigned_message_groups(
                 context.channel.id
             )
 
@@ -54,7 +54,6 @@ class ConfigCog(Cog):
             if assigned_message_groups
             else "none"
         )
-
         await context.reply(
             dedent(
                 f"""
