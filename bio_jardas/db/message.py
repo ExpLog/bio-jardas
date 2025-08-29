@@ -1,3 +1,13 @@
+"""
+Message models.
+
+Note that not all message groups are replies. Things like fortunes are also a message
+group.
+
+While this is a core construct of the bot, it's not a feature by itself. It's data
+that's leveraged by actual features.
+"""
+
 from datetime import datetime
 
 import sqlalchemy as sa
@@ -96,9 +106,25 @@ class MessageGroupChoice(Base):
         back_populates="available_choices", lazy="raise"
     )
 
+    # A MessageGroupChoice with weight > 0 is considered a weighted roll choice,
+    # while one with independent_roll_probability in considered an independent roll
+    # Independent rolls are rolled separately before the weighted rolls and will
+    # short-circuit them.
+    # For simplicity, a choice can have both weight and independent_roll_probability
+    # this just means that it will be considered for both rolls
     weight: Mapped[float] = mapped_column(
-        nullable=False, default=1.0, server_default="1.0"
+        nullable=False,
+        default=1.0,
+        server_default="1.0",
+        comment="Weighted roll choices are weighted between themselves",
     )
+    independent_roll_probability: Mapped[float] = mapped_column(
+        nullable=False,
+        default=0.0,
+        server_default="0.0",
+        comment="Independent roll choices are rolled before weighted choices",
+    )
+
     is_channel: Mapped[bool] = mapped_column(
         nullable=False,
         default=False,
@@ -126,3 +152,11 @@ class MessageGroupChoice(Base):
         server_default=sa.func.now(),
         onupdate=sa.func.now(),
     )
+
+    @property
+    def is_weighted_roll(self) -> float:
+        return self.weight > 0
+
+    @property
+    def is_independent_roll(self) -> float:
+        return self.independent_roll_probability > 0

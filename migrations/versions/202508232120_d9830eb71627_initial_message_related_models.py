@@ -90,7 +90,20 @@ def upgrade() -> None:
         "message_group_choice",
         sa.Column("snowflake_id", sa.BigInteger(), nullable=False),
         sa.Column("group_id", sa.BigInteger(), nullable=False),
-        sa.Column("weight", sa.Float(), server_default="1.0", nullable=False),
+        sa.Column(
+            "weight",
+            sa.Float(),
+            server_default="1.0",
+            nullable=False,
+            comment="Weighted roll choices are weighted between themselves",
+        ),
+        sa.Column(
+            "independent_roll_probability",
+            sa.Float(),
+            server_default="0.0",
+            nullable=False,
+            comment="Independent roll choices are rolled before weighted choices",
+        ),
         sa.Column(
             "is_channel",
             sa.Boolean(),

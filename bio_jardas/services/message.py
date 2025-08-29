@@ -13,7 +13,7 @@ DEFAULT_CHANNEL_MESSAGE_GROUPS = {
     "dark_joke": 1.0,
     "shower_thought": 1.0,
     "catcall": 2.0,
-    "vocabulary_user_added": 5.0,
+    "user_added_vocabulary": 5.0,
     "generic_seldom": 2.0,
     "generic_sometimes": 6.0,
     "generic_often": 8.0,
@@ -25,13 +25,21 @@ class MessageService:
         self.bot = bot
         self.session = session
 
+    async def get_assigned_message_groups(
+        self, snowflake_id: int
+    ) -> list[MessageGroup]:
+        query = (
+            select(MessageGroup)
+            .join(MessageGroupChoice)
+            .where(MessageGroupChoice.snowflake_id == snowflake_id)
+        )
+        return list((await self.session.scalars(query)).all())
+
     async def get_random_message_group_choice(
         self, user_id: int, channel_id: int
     ) -> MessageGroupChoice | None:
-        query = (
-            select(MessageGroupChoice)
-            .join(MessageGroup)
-            .where(MessageGroupChoice.snowflake_id.in_((user_id, channel_id)))
+        query = select(MessageGroupChoice).where(
+            MessageGroupChoice.snowflake_id.in_((user_id, channel_id))
         )
         weights = (await self.session.scalars(query)).all()
         if not weights:
