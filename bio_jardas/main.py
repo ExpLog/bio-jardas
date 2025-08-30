@@ -6,6 +6,7 @@ from bio_jardas.cogs.config import ConfigCog
 from bio_jardas.cogs.reply import ReplyCog
 from bio_jardas.observability import (
     THIRD_PARTY_LOGGERS,
+    bind_command_context_to_logs,
     instrument_logs,
 )
 from bio_jardas.settings import SETTINGS
@@ -55,6 +56,11 @@ if __name__ == "__main__":
     logger = structlog.stdlib.get_logger()
     logger.info("Starting BioJardas")
     jardas = BioJardas.build()
+    jardas.before_invoke(bind_command_context_to_logs)
+    jardas.before_message_command_invoke(bind_command_context_to_logs)
+    jardas.before_user_command_invoke(bind_command_context_to_logs)
+    jardas.before_slash_command_invoke(bind_command_context_to_logs)
+
     jardas.add_cog(ReplyCog(jardas))
     jardas.add_cog(ConfigCog(jardas))
     jardas.run(SETTINGS.discord.token)

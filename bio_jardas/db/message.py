@@ -9,6 +9,7 @@ that's leveraged by actual features.
 """
 
 from datetime import datetime
+from typing import Literal
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -160,3 +161,11 @@ class MessageGroupChoice(Base):
     @property
     def is_independent_roll(self) -> float:
         return self.independent_roll_probability > 0
+
+    @property
+    def roll_type(self) -> Literal["weighted", "independent", "all"]:
+        if self.is_weighted_roll and self.is_independent_roll:
+            return "all"
+        if self.is_weighted_roll:
+            return "weighted"
+        return "independent"

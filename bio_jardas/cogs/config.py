@@ -19,23 +19,15 @@ class ConfigCog(Cog):
     async def intensity(
         self, context: Context[Bot], new_intensity: ReplyIntensityEnum
     ) -> None:
-        author = context.author
         async with transaction() as session:
             config_service = ConfigService(session)
             await config_service.update_intensity(ReplyIntensityEnum(new_intensity))
-        await logger.ainfo(
-            "Intensity updated",
-            author_id=author.id,
-        )
+        await logger.ainfo("Intensity updated")
         await context.message.add_reaction("✅")
 
     @intensity.error
     async def intensity_error_handler(self, context: Context, exception: CommandError):
-        await logger.ainfo(
-            "Failed to set new intensity",
-            exception=str(exception),
-            author_id=context.author.id,
-        )
+        await logger.ainfo("Failed to set new intensity", exception=str(exception))
         await context.message.add_reaction("❌")
 
     @command()

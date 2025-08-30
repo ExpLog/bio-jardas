@@ -4,7 +4,19 @@ from collections.abc import Sequence
 from typing import Any
 
 import structlog
+from disnake.ext.commands import Context
+from structlog.contextvars import bind_contextvars, clear_contextvars
 from structlog.typing import Processor
+
+from bio_jardas.shortcuts import (
+    author_id,
+    author_name,
+    channel_id,
+    channel_name,
+    command_qualified_name,
+    guild_id,
+    guild_name,
+)
 
 STRUCTLOG_DEFAULT_PROCESSORS = (
     structlog.contextvars.merge_contextvars,
@@ -107,4 +119,29 @@ def _instrument_structlog_logs(processors: Sequence[Processor], /) -> None:
             *processors,
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
+    )
+
+
+async def bind_command_context_to_logs(context: Context):
+    clear_contextvars()
+    bind_contextvars(
+        author_id=author_id(context),
+        author_name=author_name(context),
+        channel_id=channel_id(context),
+        channel_name=channel_name(context),
+        guild_id=guild_id(context),
+        guild_name=guild_name(context),
+        command=command_qualified_name(context),
+    )
+
+
+async def bind_listener_context_to_logs(context: Context):
+    clear_contextvars()
+    bind_contextvars(
+        author_id=author_id(context),
+        author_name=author_name(context),
+        channel_id=channel_id(context),
+        channel_name=channel_name(context),
+        guild_id=guild_id(context),
+        guild_name=guild_name(context),
     )

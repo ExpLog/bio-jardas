@@ -3,6 +3,7 @@ import random
 import structlog
 from disnake.ext.commands import Bot
 from sqlalchemy.ext.asyncio import AsyncSession
+from structlog.contextvars import bind_contextvars
 
 from bio_jardas.db import Message, MessageGroup, MessageGroupChoice
 from bio_jardas.db.exceptions import EntityNotFoundError
@@ -53,7 +54,7 @@ class MessageService:
         )
         if not message_group_choice:
             return None
-        # TODO: bind choice type (weighted/independent) to structlog
+        bind_contextvars(roll_type=message_group_choice.roll_type)
         return await self.repo.get_random_message(message_group_choice.group_id)
 
     async def apply_defaults_to_channel(

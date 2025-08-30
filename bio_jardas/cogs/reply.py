@@ -5,14 +5,18 @@ from disnake import Member
 from disnake import Message as DiscordMessage
 from disnake.ext.commands import Bot, Cog, Context, group
 from sqlalchemy.ext.asyncio import AsyncSession
+from structlog.contextvars import bind_contextvars
 
 from bio_jardas.db.base import transaction, transactional
 from bio_jardas.db.repositories.message import MessageRepo
 from bio_jardas.decorators import skip_bots_and_commands
 from bio_jardas.dtos.message import UpsertMessageGroupChoice
+from bio_jardas.observability import (
+    bind_listener_context_to_logs,
+)
 from bio_jardas.services.config import ConfigService
 from bio_jardas.services.message import ChannelAlreadyRegisteredError, MessageService
-from bio_jardas.shortcuts import author_id, channel_id, command_qualified_name
+from bio_jardas.shortcuts import author_id, channel_id
 
 logger = structlog.stdlib.get_logger()
 
@@ -24,13 +28,18 @@ class ReplyCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    # ruff: noqa: ARG002
     @Cog.listener("on_message")
     @skip_bots_and_commands
     @transactional
     async def reply_listener(
         self, message: DiscordMessage, *, context: Context[Bot], session: AsyncSession
     ) -> None:
+        await bind_listener_context_to_logs(context)
+        bind_contextvars(
+            listener="ReplyCog.reply_listener",
+            listener_event="on_message",
+        )
+
         config_service = ConfigService(session)
         message_service = MessageService(self.bot, session)
 
@@ -45,16 +54,12 @@ class ReplyCog(Cog):
         if not reply:
             return
 
-        await message.reply(reply.text)
         await logger.ainfo(
             "Replied to message",
-            author_id=author_id(message),
-            channel_id=channel_id(message),
-            listener="ReplyCog.reply_listener",
-            listener_event="on_message",
             message_group_id=reply.group_id,
             message_id=reply.id,
         )
+        await message.reply(reply.text)
 
     # reply commands
     # root
@@ -113,13 +118,7 @@ class ReplyCog(Cog):
         async with transaction() as session:
             message_service = MessageService(self.bot, session)
             await message_service.add_or_update_message_group_choice(dto)
-        await logger.ainfo(
-            "Added message group to channel",
-            author_id=author_id(context),
-            channel_id=channel_id(context),
-            command=command_qualified_name(context),
-            message_group=group_name,
-        )
+        await logger.ainfo("Added message group to channel")
         await context.message.add_reaction("✅")  # TODO: add opposite reaction on error
         await context.reply(f"Added the `{group_name}` message group to channel")
 
@@ -134,9 +133,6 @@ class ReplyCog(Cog):
             )
         await logger.ainfo(
             "Removed message groups from channel",
-            author_id=author_id(context),
-            channel_id=channel_id(context),
-            command=command_qualified_name(context),
             deleted_count=deleted_count,
             message_groups=group_names,
         )
@@ -151,9 +147,6 @@ class ReplyCog(Cog):
             )
         await logger.ainfo(
             "Removed message groups from channel",
-            author_id=author_id(context),
-            channel_id=channel_id(context),
-            command=command_qualified_name(context),
             deleted_count=deleted_count,
         )
         await context.reply("Removed all message groups from channel")
@@ -166,21 +159,14 @@ class ReplyCog(Cog):
                 await message_service.apply_defaults_to_channel(context.channel.id)
             except ChannelAlreadyRegisteredError:
                 await logger.aerror(
-                    "Attempt to apply default message groups choices to channel with "
-                    "choices",
-                    author_id=author_id(context),
-                    channel_id=channel_id(context),
-                    command=command_qualified_name(context),
+                    "Channel already has message groups assigned",
                 )
                 await context.reply("This channel already has message groups assigned")
                 return
         await logger.ainfo(
-            "Applied default message group choices to channel",
-            author_id=author_id(context),
-            channel_id=channel_id(context),
-            command=command_qualified_name(context),
+            "Assigned default message groups to channel",
         )
-        await context.reply("Applied default message groups to channel")
+        await context.reply("Assigned default message groups to channel")
 
     # user assignments
     @reply.group(name="user", invoke_without_command=True)
@@ -211,10 +197,7 @@ class ReplyCog(Cog):
             await message_service.add_or_update_message_group_choice(dto)
         await logger.ainfo(
             "Added message group to user",
-            author_id=author_id(context),
-            channel_id=channel_id(context),
             target_user_id=member.id,
-            command=command_qualified_name(context),
             message_group=group_name,
         )
         await context.message.add_reaction("✅")  # TODO: add opposite reaction on error
@@ -233,9 +216,6 @@ class ReplyCog(Cog):
             )
         await logger.ainfo(
             "Removed message groups from channel",
-            author_id=author_id(context),
-            channel_id=channel_id(context),
-            command=command_qualified_name(context),
             deleted_count=deleted_count,
             message_groups=group_names,
         )
@@ -248,9 +228,6 @@ class ReplyCog(Cog):
             deleted_count = await message_repo.delete_message_group_choices(member.id)
         await logger.ainfo(
             "Removed message groups from user",
-            author_id=author_id(context),
-            channel_id=channel_id(context),
-            command=command_qualified_name(context),
             deleted_count=deleted_count,
         )
         await context.reply("Removed all message groups from user")
@@ -272,11 +249,6 @@ class ReplyCog(Cog):
 async def _ensure_group_names(context: Context, group_names: tuple[str, ...]) -> bool:
     if not group_names:
         await context.reply("No group names given")
-        await logger.aerror(
-            "No message group names given",
-            author_id=author_id(context),
-            channel_id=channel_id(context),
-            command=command_qualified_name(context),
-        )
+        await logger.aerror("No message group names given")
         return False
     return True
