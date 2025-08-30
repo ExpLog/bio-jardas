@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from sqlalchemy import delete, exists, func, select
 
 from bio_jardas.db import Message, MessageGroup, MessageGroupChoice
@@ -21,30 +23,39 @@ class MessageRepo(Repository):
         )
         return list((await self.session.scalars(query)).all())
 
-    async def get_message_groups_by_name(self, *name: str) -> list[MessageGroup]:
+    async def get_message_groups_by_name(self, *names: str) -> list[MessageGroup]:
         """
         Get MessageGroups by their name.
-        :param name: Name of the message group.
+        :param names: Name of the message group.
         :return: List of message groups.
         """
-        query = select(MessageGroup).where(MessageGroup.name.in_(name))
+        query = select(MessageGroup).where(MessageGroup.name.in_(names))
         return list((await self.session.scalars(query)).all())
 
     async def get_message_group_choices(
-        self, *snowflake_id: int
+        self,
+        *snowflake_ids: int,
+        group_name: str | None = None,
+        for_update: bool = False,
     ) -> list[MessageGroupChoice]:
         """
         Get the MessageGroupChoices for the given snowflake ids.
-        :param snowflake_id: Discord snowflake id of a channel or user.
+        :param snowflake_ids: Discord snowflake id of a channel or user.
+        :param group_name: The group name of the associated MessageGroup
+        :param for_update: Put database lock for update on record.
         :return: List of message group choices.
         """
         query = select(MessageGroupChoice).where(
-            MessageGroupChoice.snowflake_id.in_(snowflake_id)
+            MessageGroupChoice.snowflake_id.in_(snowflake_ids)
         )
+        if group_name:
+            query = query.join(MessageGroup).where(MessageGroup.name == group_name)
+        if for_update:
+            query = query.with_for_update()
         return list((await self.session.scalars(query)).all())
 
     async def delete_message_group_choices(
-        self, snowflake_id: int, group_names: list[str] | None
+        self, snowflake_id: int, group_names: Sequence[str] | None = None
     ) -> int:
         """
         Delete the MessageGroupChoices for the given snowflake id.

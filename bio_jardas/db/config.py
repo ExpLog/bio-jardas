@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from bio_jardas.db.base import Base
 
 
+# TODO: change name of table/class to bot_config
 class Config(Base):
     __tablename__ = "config"
 

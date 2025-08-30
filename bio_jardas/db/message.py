@@ -35,7 +35,7 @@ class MessageGroup(Base):
         lazy="raise",
     )
 
-    created_by: Mapped[int] = mapped_column(
+    last_modified_by: Mapped[int] = mapped_column(
         sa.BigInteger,
         nullable=False,
         comment="Snowflake id of the user. 0 for legacy.",
@@ -66,7 +66,7 @@ class Message(Base):
     )
 
     # TODO: add some moderation metadata?
-    created_by: Mapped[int] = mapped_column(
+    last_modified_by: Mapped[int] = mapped_column(
         sa.BigInteger,
         nullable=False,
         comment="Snowflake id of the user. 0 for legacy.",
@@ -138,7 +138,7 @@ class MessageGroupChoice(Base):
         comment="Whether the snowflake_id refers to a user",
     )
 
-    created_by: Mapped[int] = mapped_column(
+    last_modified_by: Mapped[int] = mapped_column(
         sa.BigInteger,
         nullable=False,
         comment="Snowflake id of the user. 0 for legacy.",

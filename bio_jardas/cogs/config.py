@@ -54,6 +54,7 @@ class ConfigCog(Cog):
             if assigned_message_groups
             else "none"
         )
+        # TODO: reply with embed
         await context.reply(
             dedent(
                 f"""

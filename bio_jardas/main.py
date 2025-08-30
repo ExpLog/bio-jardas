@@ -36,14 +36,20 @@ class BioJardas(Bot):
         await logger.awarning(
             "Ignoring error in command",
             command=f"{cog.qualified_name}.{command.qualified_name}",
-            exception=str(exception),
+            exc_info=exception,
         )
+        await context.message.add_reaction("⁉️")
 
 
 if __name__ == "__main__":
+    # TODO: automatically populate structlog context with:
+    #  * author id
+    #  * channel id
+    #  * command qualified name
     instrument_logs(
         SETTINGS.log_level,
         extra_loggers=THIRD_PARTY_LOGGERS,
+        force_console_renderer=SETTINGS.log_force_console_renderer,
     )
 
     logger = structlog.stdlib.get_logger()

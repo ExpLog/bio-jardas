@@ -4,8 +4,12 @@ import structlog
 from disnake.ext.commands import Bot
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bio_jardas.db import Message, MessageGroupChoice
+from bio_jardas.db import Message, MessageGroup, MessageGroupChoice
+from bio_jardas.db.exceptions import EntityNotFoundError
 from bio_jardas.db.repositories.message import MessageRepo
+from bio_jardas.dtos.message import UpsertMessageGroupChoice
+from bio_jardas.exceptions import JardasError
+from bio_jardas.utils import first
 
 logger = structlog.stdlib.get_logger()
 
@@ -26,7 +30,7 @@ class MessageService:
         self.repo = MessageRepo(session)
         self.session = session
 
-    async def get_random_message_group_choice(
+    async def random_message_group_choice(
         self, user_id: int, channel_id: int
     ) -> MessageGroupChoice | None:
         choices = await self.repo.get_message_group_choices(user_id, channel_id)
@@ -36,19 +40,19 @@ class MessageService:
         # TODO: add independent roll check here
         return random.choices(choices, [c.weight for c in choices])[0]
 
-    async def get_reply(self, user_id: int, channel_id: int) -> Message | None:
-        message_group_choice = await self.get_random_message_group_choice(
+    async def random_reply(self, user_id: int, channel_id: int) -> Message | None:
+        message_group_choice = await self.random_message_group_choice(
             user_id, channel_id
         )
         if not message_group_choice:
             return None
         return await self.repo.get_random_message(message_group_choice.group_id)
 
-    async def create_default_message_group_choices(
+    async def apply_defaults_to_channel(
         self, channel_id: int
     ) -> list[MessageGroupChoice]:
-        already_registered = await self.repo.channel_has_choices(channel_id)
-        if already_registered:
+        has_choices = await self.repo.channel_has_choices(channel_id)
+        if has_choices:
             raise ChannelAlreadyRegisteredError
 
         message_groups = await self.repo.get_message_groups_by_name(
@@ -60,13 +64,39 @@ class MessageService:
                 group_id=mg.id,
                 weight=DEFAULT_CHANNEL_MESSAGE_GROUPS[mg.name],
                 is_channel=True,
-                created_by=self.bot.user.id,
+                last_modified_by=self.bot.user.id,
             )
             for mg in message_groups
         ]
         self.repo.session.add_all(message_group_choices)
         return message_group_choices
 
+    async def add_or_update_message_group_choice(self, dto: UpsertMessageGroupChoice):
+        message_groups = await self.repo.get_message_groups_by_name(dto.group_name)
+        message_group = first(message_groups)
+        if not message_group:
+            raise EntityNotFoundError(MessageGroup, dto.group_name)
 
-class ChannelAlreadyRegisteredError(Exception):
+        message_group_choices = await self.repo.get_message_group_choices(
+            dto.snowflake_id, group_name=message_group.name, for_update=True
+        )
+        message_group_choice = first(message_group_choices)
+        if not message_group_choice:
+            message_group_choice = MessageGroupChoice(
+                snowflake_id=dto.snowflake_id,
+                group=message_group,
+                is_channel=dto.is_channel,
+                is_user=dto.is_user,
+            )
+            self.repo.session.add(message_group_choice)
+
+        message_group_choice.weight = dto.weight
+        message_group_choice.independent_roll_probability = (
+            dto.independent_roll_probability
+        )
+        message_group_choice.last_modified_by = dto.last_modified_by
+        return message_group_choice
+
+
+class ChannelAlreadyRegisteredError(JardasError):
     pass

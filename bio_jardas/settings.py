@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     discord: DiscordConfig
     postgres: PostgresConfig
     log_level: Annotated[str, StringConstraints(to_upper=True)]
+    log_force_console_renderer: bool = False
 
     model_config = SettingsConfigDict(
         frozen=True,

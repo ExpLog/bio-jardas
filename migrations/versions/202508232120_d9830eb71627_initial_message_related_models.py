@@ -28,7 +28,7 @@ def upgrade() -> None:
             "description", sa.String(length=1000), server_default="", nullable=False
         ),
         sa.Column(
-            "created_by",
+            "last_modified_by",
             sa.BigInteger(),
             nullable=False,
             comment="Snowflake id of the user. 0 for legacy.",
@@ -55,7 +55,7 @@ def upgrade() -> None:
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column("group_id", sa.BigInteger(), nullable=False),
         sa.Column(
-            "created_by",
+            "last_modified_by",
             sa.BigInteger(),
             nullable=False,
             comment="Snowflake id of the user. 0 for legacy.",
@@ -119,7 +119,7 @@ def upgrade() -> None:
             comment="Whether the snowflake_id refers to a user",
         ),
         sa.Column(
-            "created_by",
+            "last_modified_by",
             sa.BigInteger(),
             nullable=False,
             comment="Snowflake id of the user. 0 for legacy.",

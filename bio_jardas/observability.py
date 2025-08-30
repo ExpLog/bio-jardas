@@ -32,10 +32,14 @@ def instrument_logs(
     level: str = "INFO",
     processors: tuple[Processor, ...] | None = None,
     extra_loggers: dict[str, Any] | None = None,
+    *,
+    force_console_renderer: bool = False,
 ) -> None:
     processors = processors or STRUCTLOG_DEFAULT_PROCESSORS
 
-    _instrument_stdlib_logs(level, processors, extra_loggers)
+    _instrument_stdlib_logs(
+        level, processors, extra_loggers, force_console_renderer=force_console_renderer
+    )
     _instrument_structlog_logs(processors)
 
 
@@ -43,7 +47,8 @@ def _instrument_stdlib_logs(
     level: str,
     processors: Sequence[Processor],
     extra_loggers: dict[str, Any],
-    /,
+    *,
+    force_console_renderer: bool = False,
 ) -> None:
     logger_config = {
         "version": 1,
@@ -55,7 +60,7 @@ def _instrument_stdlib_logs(
                     structlog.stdlib.ProcessorFormatter.remove_processors_meta,
                     (
                         structlog.dev.ConsoleRenderer()
-                        if sys.stderr.isatty()
+                        if sys.stderr.isatty() or force_console_renderer
                         else structlog.processors.JSONRenderer()
                     ),
                 ),

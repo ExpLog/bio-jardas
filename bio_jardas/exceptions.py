@@ -1,0 +1,2 @@
+class JardasError(Exception):
+    pass
