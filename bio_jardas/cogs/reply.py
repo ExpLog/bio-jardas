@@ -17,6 +17,9 @@ from bio_jardas.shortcuts import author_id, channel_id, command_qualified_name
 logger = structlog.stdlib.get_logger()
 
 
+# TODO: change success and failure replies to emojis
+# TODO: add emojis module
+# TODO: add shortcuts success_reaction, error_reaction, uncaught_error_reaction
 class ReplyCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -58,7 +61,7 @@ class ReplyCog(Cog):
     @group(name="reply", invoke_without_command=True, case_insensitive=True)
     async def reply(self, context: Context) -> None:
         # TODO: add some help text
-        pass
+        await context.reply("WIP help")
 
     # discoverability
     @reply.command(name="groups")
@@ -68,7 +71,7 @@ class ReplyCog(Cog):
     @reply.group(name="show", invoke_without_command=True)
     async def reply_show(self, context: Context) -> None:
         # TODO: add some help text
-        pass
+        await context.reply("WIP help")
 
     @reply_show.command(name="channel")
     async def reply_show_channel(self, context: Context) -> None:
@@ -88,7 +91,7 @@ class ReplyCog(Cog):
     @reply.group(name="channel", invoke_without_command=True)
     async def reply_channel(self, context: Context) -> None:
         # TODO: add some help text
-        pass
+        await context.reply("WIP help")
 
     @reply_channel.command(name="add", aliases=("assign", "+"))
     async def reply_channel_add(
@@ -109,7 +112,7 @@ class ReplyCog(Cog):
         )
         async with transaction() as session:
             message_service = MessageService(self.bot, session)
-            added = await message_service.add_or_update_message_group_choice(dto)
+            await message_service.add_or_update_message_group_choice(dto)
         await logger.ainfo(
             "Added message group to channel",
             author_id=author_id(context),
@@ -118,7 +121,7 @@ class ReplyCog(Cog):
             message_group=group_name,
         )
         await context.message.add_reaction("✅")  # TODO: add opposite reaction on error
-        await context.reply(f"Added {len(added)} message groups to channel")
+        await context.reply(f"Added the `{group_name}` message group to channel")
 
     @reply_channel.command(name="remove", aliases=("rm", "-"))
     async def reply_channel_remove(self, context: Context, *group_names: str) -> None:
@@ -183,41 +186,74 @@ class ReplyCog(Cog):
     @reply.group(name="user", invoke_without_command=True)
     async def reply_user(self, context: Context) -> None:
         # TODO: add some help text
-        pass
+        await context.reply("WIP help")
 
     @reply_user.command(name="add", aliases=("assign", "+"))
     async def reply_user_add(
-        self, context: Context, member: Member, *groups: str
+        self,
+        context: Context,
+        member: Member,
+        group_name: str,
+        weight: float = 1.0,
+        independent_roll_probability: float = 0.0,
     ) -> None:
-        pass
+        dto = UpsertMessageGroupChoice(
+            snowflake_id=member.id,
+            group_name=group_name,
+            weight=weight,
+            independent_roll_probability=independent_roll_probability,
+            is_channel=False,
+            is_user=True,
+            last_modified_by=author_id(context),
+        )
+        async with transaction() as session:
+            message_service = MessageService(self.bot, session)
+            await message_service.add_or_update_message_group_choice(dto)
+        await logger.ainfo(
+            "Added message group to user",
+            author_id=author_id(context),
+            channel_id=channel_id(context),
+            target_user_id=member.id,
+            command=command_qualified_name(context),
+            message_group=group_name,
+        )
+        await context.message.add_reaction("✅")  # TODO: add opposite reaction on error
+        await context.reply(f"Added the `{group_name}` message group to user")
 
     @reply_user.command(name="remove", aliases=("rm", "-"))
     async def reply_user_remove(
-        self, context: Context, member: Member, *groups: str
+        self, context: Context, member: Member, *group_names: str
     ) -> None:
-        pass
+        if not _ensure_group_names(context, group_names):
+            return
+        async with transaction() as session:
+            message_repo = MessageRepo(session)
+            deleted_count = await message_repo.delete_message_group_choices(
+                member.id, group_names
+            )
+        await logger.ainfo(
+            "Removed message groups from channel",
+            author_id=author_id(context),
+            channel_id=channel_id(context),
+            command=command_qualified_name(context),
+            deleted_count=deleted_count,
+            message_groups=group_names,
+        )
+        await context.reply(f"Removed {deleted_count} message groups from user")
 
     @reply_user.command(name="clear")
     async def reply_user_clear(self, context: Context, member: Member) -> None:
-        pass
-
-    # self-service commands (optional)
-    @reply.group(name="me", invoke_without_command=True)
-    async def reply_me(self, context: Context) -> None:
-        # TODO: add some help text
-        pass
-
-    @reply_me.command(name="add")
-    async def reply_me_add(self, context: Context, *groups: str) -> None:
-        pass
-
-    @reply_me.command(name="remove")
-    async def reply_me_remove(self, context: Context, *groups: str) -> None:
-        pass
-
-    @reply_me.command(name="clear")
-    async def reply_me_clear(self, context: Context) -> None:
-        pass
+        async with transaction() as session:
+            message_repo = MessageRepo(session)
+            deleted_count = await message_repo.delete_message_group_choices(member.id)
+        await logger.ainfo(
+            "Removed message groups from user",
+            author_id=author_id(context),
+            channel_id=channel_id(context),
+            command=command_qualified_name(context),
+            deleted_count=deleted_count,
+        )
+        await context.reply("Removed all message groups from user")
 
     # help fallbacks / local error handlers (optional)
     @reply.error
@@ -230,10 +266,6 @@ class ReplyCog(Cog):
 
     @reply_user.error
     async def reply_user_error(self, context: Context, exc: Exception) -> None:
-        pass
-
-    @reply_me.error
-    async def reply_me_error(self, context: Context, exc: Exception) -> None:
         pass
 
 
