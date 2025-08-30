@@ -37,8 +37,15 @@ class MessageService:
         if not choices:
             return None
 
-        # TODO: add independent roll check here
-        return random.choices(choices, [c.weight for c in choices])[0]
+        independent_choices = [c for c in choices if c.is_independent_roll]
+        for choice in independent_choices:
+            if random.random() <= choice.independent_roll_probability:
+                return choice
+
+        weighted_choices = [c for c in choices if c.is_weighted_roll]
+        return first(
+            random.choices(weighted_choices, [c.weight for c in weighted_choices])
+        )
 
     async def random_reply(self, user_id: int, channel_id: int) -> Message | None:
         message_group_choice = await self.random_message_group_choice(
@@ -46,6 +53,7 @@ class MessageService:
         )
         if not message_group_choice:
             return None
+        # TODO: bind choice type (weighted/independent) to structlog
         return await self.repo.get_random_message(message_group_choice.group_id)
 
     async def apply_defaults_to_channel(
