@@ -135,7 +135,7 @@ async def bind_command_context_to_logs(context: Context):
     )
 
 
-async def bind_listener_context_to_logs(context: Context):
+def bind_listener_context_to_logs(context: Context):
     clear_contextvars()
     bind_contextvars(
         author_id=author_id(context),
@@ -145,3 +145,11 @@ async def bind_listener_context_to_logs(context: Context):
         guild_id=guild_id(context),
         guild_name=guild_name(context),
     )
+
+
+def bind_error_cause(cause: str):
+    bind_contextvars(cause=cause)
+
+
+def bind_exception_info(exception: Exception):
+    bind_contextvars(exc_info=exception)

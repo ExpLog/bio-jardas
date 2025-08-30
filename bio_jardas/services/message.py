@@ -62,7 +62,7 @@ class MessageService:
     ) -> list[MessageGroupChoice]:
         has_choices = await self.repo.channel_has_choices(channel_id)
         if has_choices:
-            raise ChannelAlreadyRegisteredError
+            raise ChannelHasMessageGroupsError
 
         message_groups = await self.repo.get_message_groups_by_name(
             *DEFAULT_CHANNEL_MESSAGE_GROUPS.keys()
@@ -107,5 +107,6 @@ class MessageService:
         return message_group_choice
 
 
-class ChannelAlreadyRegisteredError(JardasError):
-    pass
+class ChannelHasMessageGroupsError(JardasError):
+    def __init__(self):
+        super().__init__("Channel already assigned message groups")

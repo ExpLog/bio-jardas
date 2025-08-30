@@ -3,19 +3,23 @@ import random
 import structlog
 from disnake import Member
 from disnake import Message as DiscordMessage
-from disnake.ext.commands import Bot, Cog, Context, group
+from disnake.ext.commands import Bot, Cog, CommandError, Context, group
 from sqlalchemy.ext.asyncio import AsyncSession
 from structlog.contextvars import bind_contextvars
 
+from bio_jardas import emojis
 from bio_jardas.db.base import transaction, transactional
+from bio_jardas.db.exceptions import EntityNotFoundError
 from bio_jardas.db.repositories.message import MessageRepo
 from bio_jardas.decorators import skip_bots_and_commands
 from bio_jardas.dtos.message import UpsertMessageGroupChoice
 from bio_jardas.observability import (
+    bind_error_cause,
+    bind_exception_info,
     bind_listener_context_to_logs,
 )
 from bio_jardas.services.config import ConfigService
-from bio_jardas.services.message import ChannelAlreadyRegisteredError, MessageService
+from bio_jardas.services.message import ChannelHasMessageGroupsError, MessageService
 from bio_jardas.shortcuts import author_id, channel_id
 
 logger = structlog.stdlib.get_logger()
@@ -34,7 +38,7 @@ class ReplyCog(Cog):
     async def reply_listener(
         self, message: DiscordMessage, *, context: Context[Bot], session: AsyncSession
     ) -> None:
-        await bind_listener_context_to_logs(context)
+        bind_listener_context_to_logs(context)
         bind_contextvars(
             listener="ReplyCog.reply_listener",
             listener_event="on_message",
@@ -106,6 +110,7 @@ class ReplyCog(Cog):
         weight: float = 1.0,
         independent_roll_probability: float = 0.0,
     ) -> None:
+        bind_contextvars(message_group=group_name)
         dto = UpsertMessageGroupChoice(
             snowflake_id=channel_id(context),
             group_name=group_name,
@@ -119,8 +124,7 @@ class ReplyCog(Cog):
             message_service = MessageService(self.bot, session)
             await message_service.add_or_update_message_group_choice(dto)
         await logger.ainfo("Added message group to channel")
-        await context.message.add_reaction("✅")  # TODO: add opposite reaction on error
-        await context.reply(f"Added the `{group_name}` message group to channel")
+        await context.message.add_reaction(emojis.SUCCESS)
 
     @reply_channel.command(name="remove", aliases=("rm", "-"))
     async def reply_channel_remove(self, context: Context, *group_names: str) -> None:
@@ -136,7 +140,8 @@ class ReplyCog(Cog):
             deleted_count=deleted_count,
             message_groups=group_names,
         )
-        await context.reply(f"Removed {deleted_count} message groups from channel")
+        reaction = emojis.SUCCESS if deleted_count else emojis.NOT_FOUND
+        await context.message.add_reaction(reaction)
 
     @reply_channel.command(name="clear")
     async def reply_channel_clear(self, context: Context) -> None:
@@ -149,24 +154,17 @@ class ReplyCog(Cog):
             "Removed message groups from channel",
             deleted_count=deleted_count,
         )
-        await context.reply("Removed all message groups from channel")
+        await context.message.add_reaction(emojis.SUCCESS)
 
     @reply_channel.command(name="apply-defaults")
     async def reply_channel_apply_defaults(self, context: Context) -> None:
         async with transaction() as session:
             message_service = MessageService(self.bot, session)
-            try:
-                await message_service.apply_defaults_to_channel(context.channel.id)
-            except ChannelAlreadyRegisteredError:
-                await logger.aerror(
-                    "Channel already has message groups assigned",
-                )
-                await context.reply("This channel already has message groups assigned")
-                return
+            await message_service.apply_defaults_to_channel(context.channel.id)
         await logger.ainfo(
             "Assigned default message groups to channel",
         )
-        await context.reply("Assigned default message groups to channel")
+        await context.message.add_reaction(emojis.SUCCESS)
 
     # user assignments
     @reply.group(name="user", invoke_without_command=True)
@@ -183,6 +181,11 @@ class ReplyCog(Cog):
         weight: float = 1.0,
         independent_roll_probability: float = 0.0,
     ) -> None:
+        bind_contextvars(
+            target_user_id=member.id,
+            target_user_name=member.name,
+            message_group=group_name,
+        )
         dto = UpsertMessageGroupChoice(
             snowflake_id=member.id,
             group_name=group_name,
@@ -197,11 +200,8 @@ class ReplyCog(Cog):
             await message_service.add_or_update_message_group_choice(dto)
         await logger.ainfo(
             "Added message group to user",
-            target_user_id=member.id,
-            message_group=group_name,
         )
-        await context.message.add_reaction("✅")  # TODO: add opposite reaction on error
-        await context.reply(f"Added the `{group_name}` message group to user")
+        await context.message.add_reaction(emojis.SUCCESS)
 
     @reply_user.command(name="remove", aliases=("rm", "-"))
     async def reply_user_remove(
@@ -219,7 +219,8 @@ class ReplyCog(Cog):
             deleted_count=deleted_count,
             message_groups=group_names,
         )
-        await context.reply(f"Removed {deleted_count} message groups from user")
+        reaction = emojis.SUCCESS if deleted_count else emojis.NOT_FOUND
+        await context.message.add_reaction(reaction)
 
     @reply_user.command(name="clear")
     async def reply_user_clear(self, context: Context, member: Member) -> None:
@@ -230,20 +231,29 @@ class ReplyCog(Cog):
             "Removed message groups from user",
             deleted_count=deleted_count,
         )
-        await context.reply("Removed all message groups from user")
+        await context.message.add_reaction(emojis.SUCCESS)
 
-    # help fallbacks / local error handlers (optional)
-    @reply.error
-    async def reply_error(self, context: Context, exc: Exception) -> None:
-        pass
+    # local error handlers
+    @reply_channel_add.error
+    @reply_user_add.error
+    async def reply_obj_add_error(self, context: Context, exception: CommandError):
+        if isinstance(exception.__cause__, EntityNotFoundError):
+            bind_error_cause(str(exception.__cause__))
+        else:
+            bind_exception_info(exception)
+        await logger.aerror("Failed to add message group to target")
+        await context.message.add_reaction(emojis.FAILURE)
 
-    @reply_channel.error
-    async def reply_channel_error(self, context: Context, exc: Exception) -> None:
-        pass
-
-    @reply_user.error
-    async def reply_user_error(self, context: Context, exc: Exception) -> None:
-        pass
+    @reply_channel_apply_defaults.error
+    async def reply_channel_apply_defaults_error(
+        self, context: Context, exception: CommandError
+    ):
+        if isinstance(exception.__cause__, ChannelHasMessageGroupsError):
+            bind_error_cause(str(exception.__cause__))
+        else:
+            bind_exception_info(exception)
+        await logger.aerror("Failed to apply default message groups to channel")
+        await context.message.add_reaction(emojis.FAILURE)
 
 
 async def _ensure_group_names(context: Context, group_names: tuple[str, ...]) -> bool:

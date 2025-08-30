@@ -2,6 +2,7 @@ import structlog
 from disnake import Intents
 from disnake.ext.commands import Bot, CommandError, Context
 
+from bio_jardas import emojis
 from bio_jardas.cogs.config import ConfigCog
 from bio_jardas.cogs.reply import ReplyCog
 from bio_jardas.observability import (
@@ -39,7 +40,7 @@ class BioJardas(Bot):
             command=f"{cog.qualified_name}.{command.qualified_name}",
             exc_info=exception,
         )
-        await context.message.add_reaction("⁉️")
+        await context.message.add_reaction(emojis.UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":

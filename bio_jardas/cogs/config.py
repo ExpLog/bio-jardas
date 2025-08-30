@@ -3,6 +3,7 @@ from textwrap import dedent
 import structlog
 from disnake.ext.commands import Bot, Cog, CommandError, Context, command
 
+from bio_jardas import emojis
 from bio_jardas.db.base import transaction
 from bio_jardas.db.repositories.message import MessageRepo
 from bio_jardas.dtos.config import ReplyIntensityEnum
@@ -23,12 +24,12 @@ class ConfigCog(Cog):
             config_service = ConfigService(session)
             await config_service.update_intensity(ReplyIntensityEnum(new_intensity))
         await logger.ainfo("Intensity updated")
-        await context.message.add_reaction("✅")
+        await context.message.add_reaction(emojis.SUCCESS)
 
     @intensity.error
     async def intensity_error_handler(self, context: Context, exception: CommandError):
         await logger.ainfo("Failed to set new intensity", exception=str(exception))
-        await context.message.add_reaction("❌")
+        await context.message.add_reaction(emojis.FAILURE)
 
     @command()
     async def status(self, context: Context[Bot]):
