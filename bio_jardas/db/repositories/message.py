@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
 from sqlalchemy import delete, exists, func, select
+from sqlalchemy.orm import joinedload
 
 from bio_jardas.db import Message, MessageGroup, MessageGroupChoice
 from bio_jardas.db.repositories.base import Repository
@@ -23,13 +24,19 @@ class MessageRepo(Repository):
         )
         return list((await self.session.scalars(query)).all())
 
-    async def get_message_groups_by_name(self, *names: str) -> list[MessageGroup]:
+    async def get_message_groups(
+        self,
+        *,
+        names: Sequence[str] | None = None,
+    ) -> list[MessageGroup]:
         """
-        Get MessageGroups by their name.
-        :param names: Name of the message group.
+        Get MessageGroups with optional filtering.
+        :param names: Filter by message group name.
         :return: List of message groups.
         """
-        query = select(MessageGroup).where(MessageGroup.name.in_(names))
+        query = select(MessageGroup)
+        if names:
+            query = query.where(MessageGroup.name.in_(names))
         return list((await self.session.scalars(query)).all())
 
     async def get_message_group_choices(
@@ -37,12 +44,14 @@ class MessageRepo(Repository):
         *snowflake_ids: int,
         group_name: str | None = None,
         for_update: bool = False,
+        load_message_groups: bool = False,
     ) -> list[MessageGroupChoice]:
         """
         Get the MessageGroupChoices for the given snowflake ids.
         :param snowflake_ids: Discord snowflake id of a channel or user.
         :param group_name: The group name of the associated MessageGroup
         :param for_update: Put database lock for update on record.
+        :param load_message_groups: Preload message groups.
         :return: List of message group choices.
         """
         query = select(MessageGroupChoice).where(
@@ -52,6 +61,8 @@ class MessageRepo(Repository):
             query = query.join(MessageGroup).where(MessageGroup.name == group_name)
         if for_update:
             query = query.with_for_update()
+        if load_message_groups:
+            query = query.options(joinedload(MessageGroupChoice.group))
         return list((await self.session.scalars(query)).all())
 
     async def delete_message_group_choices(

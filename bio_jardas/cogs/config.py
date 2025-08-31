@@ -1,8 +1,4 @@
-from datetime import datetime
-from zoneinfo import ZoneInfo
-
 import structlog
-from disnake import Color, Embed
 from disnake.ext.commands import (
     Bot,
     BucketType,
@@ -18,6 +14,7 @@ from bio_jardas.db.base import transaction
 from bio_jardas.db.repositories.message import MessageRepo
 from bio_jardas.dtos.config import ReplyIntensityEnum
 from bio_jardas.services.config import ConfigService
+from bio_jardas.utils import probability_as_percentage, standard_embed
 
 logger = structlog.stdlib.get_logger()
 
@@ -27,7 +24,7 @@ class ConfigCog(Cog):
         self.bot = bot
 
     @command(help="|".join(ReplyIntensityEnum))
-    @cooldown(1, 10, BucketType.guild)
+    @cooldown(1, 10, BucketType.channel)
     async def intensity(
         self, context: Context[Bot], new_intensity: ReplyIntensityEnum
     ) -> None:
@@ -53,15 +50,11 @@ class ConfigCog(Cog):
                 context.channel.id
             )
 
-        embed = Embed(
-            title="Status",
-            color=Color.green(),
-            timestamp=datetime.now(tz=ZoneInfo("Europe/Lisbon")),
-        )
+        embed = standard_embed("Status")
         embed.set_footer(text="Toss a coin to your Jardas")
         embed.add_field("Intensity", intensity_config.intensity)
         embed.add_field(
-            "Reply%", f"{round(intensity_config.reply_probability(), 4) * 100}%"
+            "Reply%", probability_as_percentage(intensity_config.reply_probability())
         )
         if assigned_message_groups:
             message_groups_str = "\n".join(mg.name for mg in assigned_message_groups)

@@ -64,8 +64,8 @@ class MessageService:
         if has_choices:
             raise ChannelHasMessageGroupsError
 
-        message_groups = await self.repo.get_message_groups_by_name(
-            *DEFAULT_CHANNEL_MESSAGE_GROUPS.keys()
+        message_groups = await self.repo.get_message_groups(
+            names=list(DEFAULT_CHANNEL_MESSAGE_GROUPS.keys())
         )
         message_group_choices = [
             MessageGroupChoice(
@@ -81,7 +81,7 @@ class MessageService:
         return message_group_choices
 
     async def add_or_update_message_group_choice(self, dto: UpsertMessageGroupChoice):
-        message_groups = await self.repo.get_message_groups_by_name(dto.group_name)
+        message_groups = await self.repo.get_message_groups(names=[dto.group_name])
         message_group = first(message_groups)
         if not message_group:
             raise EntityNotFoundError(MessageGroup, dto.group_name)

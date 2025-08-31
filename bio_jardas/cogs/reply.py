@@ -3,7 +3,15 @@ import random
 import structlog
 from disnake import Member
 from disnake import Message as DiscordMessage
-from disnake.ext.commands import Bot, Cog, CommandError, Context, group
+from disnake.ext.commands import (
+    Bot,
+    BucketType,
+    Cog,
+    CommandError,
+    Context,
+    cooldown,
+    group,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from structlog.contextvars import bind_contextvars
 
@@ -21,11 +29,13 @@ from bio_jardas.observability import (
 from bio_jardas.services.config import ConfigService
 from bio_jardas.services.message import ChannelHasMessageGroupsError, MessageService
 from bio_jardas.shortcuts import author_id, channel_id
+from bio_jardas.utils import probability_as_percentage, standard_embed
 
 logger = structlog.stdlib.get_logger()
 
 
 # TODO: differentiate between internal errors and user errors in logs
+# TODO: add simple permission system for configuration
 class ReplyCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -72,8 +82,13 @@ class ReplyCog(Cog):
 
     # discoverability
     @reply.command(name="groups")
+    @cooldown(1, 60, BucketType.channel)
     async def reply_groups(self, context: Context) -> None:
-        pass
+        async with transaction() as session:
+            message_service = MessageService(self.bot, session)
+            message_groups = await message_service.repo.get_message_groups()
+        message = ", ".join(f"`{mg.name}`" for mg in message_groups)
+        await context.message.reply(message)
 
     @reply.group(name="show", invoke_without_command=True)
     async def reply_show(self, context: Context) -> None:
@@ -81,18 +96,47 @@ class ReplyCog(Cog):
         await context.reply("WIP help")
 
     @reply_show.command(name="channel")
+    @cooldown(1, 10, BucketType.channel)
     async def reply_show_channel(self, context: Context) -> None:
-        pass
+        async with transaction() as session:
+            message_service = MessageService(self.bot, session)
+            message_group_choices = (
+                await message_service.repo.get_message_group_choices(
+                    channel_id(context), load_message_groups=True
+                )
+            )
+        embed = standard_embed("Channel Message Groups")
+        total_weight = sum(mgc.weight for mgc in message_group_choices)
+        for mgc in message_group_choices:
+            weight = probability_as_percentage(mgc.weight / total_weight)
+            roll = probability_as_percentage(mgc.independent_roll_probability)
+            value = f"w={weight} r={roll}"
+            embed.add_field(mgc.group.name, value)
+        await context.send(embed=embed, reference=context.message)
 
     @reply_show.command(name="user")
+    @cooldown(1, 10, BucketType.channel)
     async def reply_show_user(
         self, context: Context, member: Member | None = None
     ) -> None:
-        pass
-
-    @reply_show.command(name="defaults")
-    async def reply_show_defaults(self, context: Context) -> None:
-        pass
+        target = member if member else context.author
+        async with transaction() as session:
+            message_service = MessageService(self.bot, session)
+            message_group_choices = (
+                await message_service.repo.get_message_group_choices(
+                    target.id, load_message_groups=True
+                )
+            )
+        embed = standard_embed("User Message Groups", description=target.name)
+        total_weight = sum(mgc.weight for mgc in message_group_choices)
+        for mgc in message_group_choices:
+            weight = probability_as_percentage(mgc.weight / total_weight)
+            roll = probability_as_percentage(mgc.independent_roll_probability)
+            value = f"w={weight} r={roll}"
+            embed.add_field(mgc.group.name, value)
+        if not message_group_choices:
+            embed.add_field("no one likes you", "")
+        await context.send(embed=embed, reference=context.message)
 
     # channel assignment commands (current channel)
     @reply.group(name="channel", invoke_without_command=True)
