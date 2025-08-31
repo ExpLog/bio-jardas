@@ -53,10 +53,6 @@ class BioJardas(Bot):
 
 
 if __name__ == "__main__":
-    # TODO: automatically populate structlog context with:
-    #  * author id
-    #  * channel id
-    #  * command qualified name
     instrument_logs(
         SETTINGS.log_level,
         extra_loggers=THIRD_PARTY_LOGGERS,
