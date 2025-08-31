@@ -1,6 +1,6 @@
 import structlog
 from disnake import Intents
-from disnake.ext.commands import Bot, CommandError, Context
+from disnake.ext.commands import Bot, CommandError, CommandOnCooldown, Context
 
 from bio_jardas import emojis
 from bio_jardas.cogs.config import ConfigCog
@@ -26,6 +26,11 @@ class BioJardas(Bot):
 
     async def on_command_error(self, context: Context, exception: CommandError) -> None:
         if self.extra_events.get("on_command_error", None):
+            return
+
+        if isinstance(exception, CommandOnCooldown):
+            # command/cog error handler will still run if defined
+            await context.message.add_reaction(emojis.WAIT)
             return
 
         command = context.command

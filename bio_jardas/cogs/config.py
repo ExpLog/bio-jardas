@@ -3,7 +3,15 @@ from zoneinfo import ZoneInfo
 
 import structlog
 from disnake import Color, Embed
-from disnake.ext.commands import Bot, Cog, CommandError, Context, command
+from disnake.ext.commands import (
+    Bot,
+    BucketType,
+    Cog,
+    CommandError,
+    Context,
+    command,
+    cooldown,
+)
 
 from bio_jardas import emojis
 from bio_jardas.db.base import transaction
@@ -19,6 +27,7 @@ class ConfigCog(Cog):
         self.bot = bot
 
     @command(help="|".join(ReplyIntensityEnum))
+    @cooldown(1, 10, BucketType.guild)
     async def intensity(
         self, context: Context[Bot], new_intensity: ReplyIntensityEnum
     ) -> None:
@@ -56,7 +65,5 @@ class ConfigCog(Cog):
         )
         if assigned_message_groups:
             message_groups_str = "\n".join(mg.name for mg in assigned_message_groups)
-            embed.add_field(
-                "Channel Message Groups", message_groups_str, inline=False
-            )
+            embed.add_field("Channel Message Groups", message_groups_str, inline=False)
         await context.send(embed=embed, reference=context.message)
