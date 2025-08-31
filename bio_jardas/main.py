@@ -7,6 +7,7 @@ from bio_jardas.cogs.config import ConfigCog
 from bio_jardas.cogs.reply import ReplyCog
 from bio_jardas.observability import (
     THIRD_PARTY_LOGGERS,
+    bind_attempted_command,
     bind_command_context_to_logs,
     instrument_logs,
 )
@@ -35,9 +36,12 @@ class BioJardas(Bot):
         if cog and cog.has_error_handler():
             return
 
+        await bind_command_context_to_logs(context)
+        if not command:
+            bind_attempted_command(context)
+
         await logger.awarning(
             "Ignoring error in command",
-            command=f"{cog.qualified_name}.{command.qualified_name}",
             exc_info=exception,
         )
         await context.message.add_reaction(emojis.UNKNOWN_ERROR)

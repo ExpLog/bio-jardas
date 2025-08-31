@@ -131,7 +131,7 @@ async def bind_command_context_to_logs(context: Context):
         channel_name=channel_name(context),
         guild_id=guild_id(context),
         guild_name=guild_name(context),
-        command=command_qualified_name(context),
+        command=command_qualified_name(context) if context.command else None,
     )
 
 
@@ -153,3 +153,7 @@ def bind_error_cause(cause: str):
 
 def bind_exception_info(exception: Exception):
     bind_contextvars(exc_info=exception)
+
+
+def bind_attempted_command(context: Context):
+    bind_contextvars(attempted_command=context.message.content)

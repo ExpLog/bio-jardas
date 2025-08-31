@@ -25,9 +25,7 @@ from bio_jardas.shortcuts import author_id, channel_id
 logger = structlog.stdlib.get_logger()
 
 
-# TODO: change success and failure replies to emojis
-# TODO: add emojis module
-# TODO: add shortcuts success_reaction, error_reaction, uncaught_error_reaction
+# TODO: differentiate between internal errors and user errors in logs
 class ReplyCog(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot

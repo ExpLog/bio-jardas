@@ -1,6 +1,8 @@
-from textwrap import dedent
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import structlog
+from disnake import Color, Embed
 from disnake.ext.commands import Bot, Cog, CommandError, Context, command
 
 from bio_jardas import emojis
@@ -42,18 +44,19 @@ class ConfigCog(Cog):
                 context.channel.id
             )
 
-        message_groups_str = (
-            ", ".join(mg.name for mg in assigned_message_groups)
-            if assigned_message_groups
-            else "none"
+        embed = Embed(
+            title="Status",
+            color=Color.green(),
+            timestamp=datetime.now(tz=ZoneInfo("Europe/Lisbon")),
         )
-        # TODO: reply with embed
-        await context.reply(
-            dedent(
-                f"""
-                intensity = {intensity_config.intensity}
-                reply% = {round(intensity_config.reply_probability(), 4) * 100}%
-                message groups = {message_groups_str}
-            """
+        embed.set_footer(text="Toss a coin to your Jardas")
+        embed.add_field("Intensity", intensity_config.intensity)
+        embed.add_field(
+            "Reply%", f"{round(intensity_config.reply_probability(), 4) * 100}%"
+        )
+        if assigned_message_groups:
+            message_groups_str = "\n".join(mg.name for mg in assigned_message_groups)
+            embed.add_field(
+                "Channel Message Groups", message_groups_str, inline=False
             )
-        )
+        await context.send(embed=embed, reference=context.message)
