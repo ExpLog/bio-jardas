@@ -2,7 +2,6 @@ import random
 
 import structlog
 from disnake.ext.commands import Bot
-from sqlalchemy.ext.asyncio import AsyncSession
 from structlog.contextvars import bind_contextvars
 
 from bio_jardas.db import Message, MessageGroup, MessageGroupChoice
@@ -26,10 +25,9 @@ DEFAULT_CHANNEL_MESSAGE_GROUPS = {
 
 
 class MessageService:
-    def __init__(self, bot: Bot, session: AsyncSession):
+    def __init__(self, bot: Bot, repo: MessageRepo):
         self.bot = bot
-        self.repo = MessageRepo(session)
-        self.session = session
+        self.repo = repo
 
     async def random_message_group_choice(
         self, user_id: int, channel_id: int

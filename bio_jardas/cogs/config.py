@@ -1,8 +1,8 @@
 import structlog
+from dishka import FromDishka
 from disnake.ext.commands import (
     Bot,
     BucketType,
-    Cog,
     CommandError,
     Context,
     command,
@@ -10,8 +10,9 @@ from disnake.ext.commands import (
 )
 
 from bio_jardas import emojis
-from bio_jardas.db.base import transaction
+from bio_jardas.cogs.base import BaseCog
 from bio_jardas.db.repositories.message import MessageRepo
+from bio_jardas.dependency_injection import cog_inject
 from bio_jardas.dtos.config import ReplyIntensityEnum
 from bio_jardas.services.config import ConfigService
 from bio_jardas.utils import probability_as_percentage, standard_embed
@@ -19,18 +20,18 @@ from bio_jardas.utils import probability_as_percentage, standard_embed
 logger = structlog.stdlib.get_logger()
 
 
-class ConfigCog(Cog):
-    def __init__(self, bot: Bot):
-        self.bot = bot
-
+class ConfigCog(BaseCog):
     @command(help="|".join(ReplyIntensityEnum))
     @cooldown(1, 10, BucketType.channel)
+    @cog_inject
     async def intensity(
-        self, context: Context[Bot], new_intensity: ReplyIntensityEnum
+        self,
+        context: Context[Bot],
+        new_intensity: ReplyIntensityEnum,
+        *,
+        config_service: FromDishka[ConfigService],
     ) -> None:
-        async with transaction() as session:
-            config_service = ConfigService(session)
-            await config_service.update_intensity(ReplyIntensityEnum(new_intensity))
+        await config_service.update_intensity(ReplyIntensityEnum(new_intensity))
         await logger.ainfo("Intensity updated")
         await context.message.add_reaction(emojis.SUCCESS)
 
@@ -40,15 +41,18 @@ class ConfigCog(Cog):
         await context.message.add_reaction(emojis.FAILURE)
 
     @command()
-    async def status(self, context: Context[Bot]):
-        async with transaction() as session:
-            config_service = ConfigService(session)
-            intensity_config = await config_service.get_intensity()
-
-            message_repo = MessageRepo(session)
-            assigned_message_groups = await message_repo.get_assigned_message_groups(
-                context.channel.id
-            )
+    @cog_inject
+    async def status(
+        self,
+        context: Context[Bot],
+        *,
+        config_service: FromDishka[ConfigService],
+        message_repo: FromDishka[MessageRepo],
+    ):
+        intensity_config = await config_service.get_intensity()
+        assigned_message_groups = await message_repo.get_assigned_message_groups(
+            context.channel.id
+        )
 
         embed = standard_embed("Status")
         embed.set_footer(text="Toss a coin to your Jardas")

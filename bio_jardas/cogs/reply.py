@@ -1,10 +1,10 @@
 import random
 
 import structlog
+from dishka import FromDishka
 from disnake import Member
 from disnake import Message as DiscordMessage
 from disnake.ext.commands import (
-    Bot,
     BucketType,
     Cog,
     CommandError,
@@ -12,14 +12,14 @@ from disnake.ext.commands import (
     cooldown,
     group,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 from structlog.contextvars import bind_contextvars
 
 from bio_jardas import emojis
-from bio_jardas.db.base import transaction, transactional
+from bio_jardas.cogs.base import BaseCog
 from bio_jardas.db.exceptions import EntityNotFoundError
 from bio_jardas.db.repositories.message import MessageRepo
 from bio_jardas.decorators import skip_bots_and_commands
+from bio_jardas.dependency_injection import cog_inject
 from bio_jardas.dtos.message import UpsertMessageGroupChoice
 from bio_jardas.observability import (
     bind_error_cause,
@@ -36,25 +36,24 @@ logger = structlog.stdlib.get_logger()
 
 # TODO: differentiate between internal errors and user errors in logs
 # TODO: add simple permission system for configuration
-class ReplyCog(Cog):
-    def __init__(self, bot: Bot):
-        self.bot = bot
-
+class ReplyCog(BaseCog):
     @Cog.listener("on_message")
     @skip_bots_and_commands
-    @transactional
+    @cog_inject
     async def reply_listener(
-        self, message: DiscordMessage, *, context: Context[Bot], session: AsyncSession
+        self,
+        message: DiscordMessage,
+        *,
+        message_service: FromDishka[MessageService],
+        config_service: FromDishka[ConfigService],
     ) -> None:
-        bind_listener_context_to_logs(context)
+        bind_listener_context_to_logs(await self.get_message_context(message))
         bind_contextvars(
             listener="ReplyCog.reply_listener",
             listener_event="on_message",
         )
 
-        config_service = ConfigService(session)
-        message_service = MessageService(self.bot, session)
-
+        # TODO: always reply when the user replies to a message
         intensity = await config_service.get_intensity()
         if random.random() > intensity.reply_probability():
             return
@@ -85,10 +84,14 @@ class ReplyCog(Cog):
     # discoverability
     @reply.command(name="groups")
     @cooldown(1, 60, BucketType.channel)
-    async def reply_groups(self, context: Context) -> None:
-        async with transaction() as session:
-            message_service = MessageService(self.bot, session)
-            message_groups = await message_service.repo.get_message_groups()
+    @cog_inject
+    async def reply_groups(
+        self,
+        context: Context,
+        *,
+        message_service: FromDishka[MessageService],
+    ) -> None:
+        message_groups = await message_service.repo.get_message_groups()
         message = ", ".join(f"`{mg.name}`" for mg in message_groups)
         await context.message.reply(message)
 
@@ -99,14 +102,13 @@ class ReplyCog(Cog):
 
     @reply_show.command(name="channel")
     @cooldown(1, 10, BucketType.channel)
-    async def reply_show_channel(self, context: Context) -> None:
-        async with transaction() as session:
-            message_service = MessageService(self.bot, session)
-            message_group_choices = (
-                await message_service.repo.get_message_group_choices(
-                    channel_id(context), load_message_groups=True
-                )
-            )
+    @cog_inject
+    async def reply_show_channel(
+        self, context: Context, *, message_repo: FromDishka[MessageRepo]
+    ) -> None:
+        message_group_choices = await message_repo.get_message_group_choices(
+            channel_id(context), load_message_groups=True
+        )
         embed = standard_embed("Channel Message Groups")
         total_weight = sum(mgc.weight for mgc in message_group_choices)
         for mgc in message_group_choices:
@@ -118,17 +120,18 @@ class ReplyCog(Cog):
 
     @reply_show.command(name="user")
     @cooldown(1, 10, BucketType.channel)
+    @cog_inject
     async def reply_show_user(
-        self, context: Context, member: Member | None = None
+        self,
+        context: Context,
+        member: Member | None = None,
+        *,
+        message_service: FromDishka[MessageService],
     ) -> None:
         target = member if member else context.author
-        async with transaction() as session:
-            message_service = MessageService(self.bot, session)
-            message_group_choices = (
-                await message_service.repo.get_message_group_choices(
-                    target.id, load_message_groups=True
-                )
-            )
+        message_group_choices = await message_service.repo.get_message_group_choices(
+            target.id, load_message_groups=True
+        )
         embed = standard_embed("User Message Groups", description=target.name)
         total_weight = sum(mgc.weight for mgc in message_group_choices)
         for mgc in message_group_choices:
@@ -147,12 +150,15 @@ class ReplyCog(Cog):
         await context.reply("WIP help")
 
     @reply_channel.command(name="add", aliases=("assign", "+"))
+    @cog_inject
     async def reply_channel_add(
         self,
         context: Context,
         group_name: str,
         weight: float = 1.0,
         independent_roll_probability: float = 0.0,
+        *,
+        message_service: FromDishka[MessageService],
     ) -> None:
         bind_contextvars(message_group=group_name)
         dto = UpsertMessageGroupChoice(
@@ -164,21 +170,23 @@ class ReplyCog(Cog):
             is_user=False,
             last_modified_by=author_id(context),
         )
-        async with transaction() as session:
-            message_service = MessageService(self.bot, session)
-            await message_service.add_or_update_message_group_choice(dto)
+        await message_service.add_or_update_message_group_choice(dto)
         await logger.ainfo("Added message group to channel")
         await context.message.add_reaction(emojis.SUCCESS)
 
     @reply_channel.command(name="remove", aliases=("rm", "-"))
-    async def reply_channel_remove(self, context: Context, *group_names: str) -> None:
+    @cog_inject
+    async def reply_channel_remove(
+        self,
+        context: Context,
+        *group_names: str,
+        message_repo: FromDishka[MessageRepo],
+    ) -> None:
         if not _ensure_group_names(context, group_names):
             return
-        async with transaction() as session:
-            message_repo = MessageRepo(session)
-            deleted_count = await message_repo.delete_message_group_choices(
-                context.channel.id, group_names
-            )
+        deleted_count = await message_repo.delete_message_group_choices(
+            context.channel.id, group_names
+        )
         await logger.ainfo(
             "Removed message groups from channel",
             deleted_count=deleted_count,
@@ -188,12 +196,13 @@ class ReplyCog(Cog):
         await context.message.add_reaction(reaction)
 
     @reply_channel.command(name="clear")
-    async def reply_channel_clear(self, context: Context) -> None:
-        async with transaction() as session:
-            message_repo = MessageRepo(session)
-            deleted_count = await message_repo.delete_message_group_choices(
-                channel_id(context)
-            )
+    @cog_inject
+    async def reply_channel_clear(
+        self, context: Context, *, message_repo: FromDishka[MessageRepo]
+    ) -> None:
+        deleted_count = await message_repo.delete_message_group_choices(
+            channel_id(context)
+        )
         await logger.ainfo(
             "Removed message groups from channel",
             deleted_count=deleted_count,
@@ -201,10 +210,14 @@ class ReplyCog(Cog):
         await context.message.add_reaction(emojis.SUCCESS)
 
     @reply_channel.command(name="apply-defaults")
-    async def reply_channel_apply_defaults(self, context: Context) -> None:
-        async with transaction() as session:
-            message_service = MessageService(self.bot, session)
-            await message_service.apply_defaults_to_channel(context.channel.id)
+    @cog_inject
+    async def reply_channel_apply_defaults(
+        self,
+        context: Context,
+        *,
+        message_service: FromDishka[MessageService],
+    ) -> None:
+        await message_service.apply_defaults_to_channel(context.channel.id)
         await logger.ainfo(
             "Assigned default message groups to channel",
         )
@@ -217,6 +230,7 @@ class ReplyCog(Cog):
         await context.reply("WIP help")
 
     @reply_user.command(name="add", aliases=("assign", "+"))
+    @cog_inject
     async def reply_user_add(
         self,
         context: Context,
@@ -224,6 +238,8 @@ class ReplyCog(Cog):
         group_name: str,
         weight: float = 1.0,
         independent_roll_probability: float = 0.0,
+        *,
+        message_service: FromDishka[MessageService],
     ) -> None:
         bind_contextvars(
             target_user_id=member.id,
@@ -239,25 +255,26 @@ class ReplyCog(Cog):
             is_user=True,
             last_modified_by=author_id(context),
         )
-        async with transaction() as session:
-            message_service = MessageService(self.bot, session)
-            await message_service.add_or_update_message_group_choice(dto)
+        await message_service.add_or_update_message_group_choice(dto)
         await logger.ainfo(
             "Added message group to user",
         )
         await context.message.add_reaction(emojis.SUCCESS)
 
     @reply_user.command(name="remove", aliases=("rm", "-"))
+    @cog_inject
     async def reply_user_remove(
-        self, context: Context, member: Member, *group_names: str
+        self,
+        context: Context,
+        member: Member,
+        *group_names: str,
+        message_repo: FromDishka[MessageRepo],
     ) -> None:
         if not _ensure_group_names(context, group_names):
             return
-        async with transaction() as session:
-            message_repo = MessageRepo(session)
-            deleted_count = await message_repo.delete_message_group_choices(
-                member.id, group_names
-            )
+        deleted_count = await message_repo.delete_message_group_choices(
+            member.id, group_names
+        )
         await logger.ainfo(
             "Removed message groups from channel",
             deleted_count=deleted_count,
@@ -267,10 +284,15 @@ class ReplyCog(Cog):
         await context.message.add_reaction(reaction)
 
     @reply_user.command(name="clear")
-    async def reply_user_clear(self, context: Context, member: Member) -> None:
-        async with transaction() as session:
-            message_repo = MessageRepo(session)
-            deleted_count = await message_repo.delete_message_group_choices(member.id)
+    @cog_inject
+    async def reply_user_clear(
+        self,
+        context: Context,
+        member: Member,
+        *,
+        message_repo: FromDishka[MessageRepo],
+    ) -> None:
+        deleted_count = await message_repo.delete_message_group_choices(member.id)
         await logger.ainfo(
             "Removed message groups from user",
             deleted_count=deleted_count,

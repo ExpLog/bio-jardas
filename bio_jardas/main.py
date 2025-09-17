@@ -1,58 +1,17 @@
-import structlog
-from disnake import Intents
-from disnake.ext.commands import Bot, CommandError, CommandOnCooldown, Context
+import asyncio
 
-from bio_jardas import emojis
-from bio_jardas.cogs.config import ConfigCog
-from bio_jardas.cogs.reply import ReplyCog
+import structlog
+
+from bio_jardas.bot import BioJardas
+from bio_jardas.dependency_injection import di_container
 from bio_jardas.observability import (
     THIRD_PARTY_LOGGERS,
-    bind_attempted_command,
-    bind_command_context_to_logs,
     instrument_logs,
 )
 from bio_jardas.settings import SETTINGS
 
 
-class BioJardas(Bot):
-    async def on_ready(self) -> None:
-        logger.info("BioJardas logged in as %s", self.user)
-
-    @classmethod
-    def build(cls) -> "BioJardas":
-        intents = Intents.default()
-        intents.message_content = True
-        return cls(command_prefix="$", intents=intents)
-
-    async def on_command_error(self, context: Context, exception: CommandError) -> None:
-        if self.extra_events.get("on_command_error", None):
-            return
-
-        if isinstance(exception, CommandOnCooldown):
-            # command/cog error handler will still run if defined
-            await context.message.add_reaction(emojis.WAIT)
-            return
-
-        command = context.command
-        if command and command.has_error_handler():
-            return
-
-        cog = context.cog
-        if cog and cog.has_error_handler():
-            return
-
-        await bind_command_context_to_logs(context)
-        if not command:
-            bind_attempted_command(context)
-
-        await logger.awarning(
-            "Ignoring error in command",
-            exc_info=exception,
-        )
-        await context.message.add_reaction(emojis.UNKNOWN_ERROR)
-
-
-if __name__ == "__main__":
+async def main() -> None:
     instrument_logs(
         SETTINGS.log_level,
         extra_loggers=THIRD_PARTY_LOGGERS,
@@ -61,12 +20,14 @@ if __name__ == "__main__":
 
     logger = structlog.stdlib.get_logger()
     logger.info("Starting BioJardas")
-    jardas = BioJardas.build()
-    jardas.before_invoke(bind_command_context_to_logs)
-    jardas.before_message_command_invoke(bind_command_context_to_logs)
-    jardas.before_user_command_invoke(bind_command_context_to_logs)
-    jardas.before_slash_command_invoke(bind_command_context_to_logs)
 
-    jardas.add_cog(ReplyCog(jardas))
-    jardas.add_cog(ConfigCog(jardas))
-    jardas.run(SETTINGS.discord.token)
+    try:
+        jardas = await di_container.get(BioJardas)
+        jardas.register_di_container(di_container)
+        await jardas.start(SETTINGS.discord.token)
+    finally:
+        await di_container.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

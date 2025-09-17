@@ -13,6 +13,6 @@ def skip_bots_and_commands(func):
         if context.valid:
             return None
 
-        return await func(self, message, *args, **kwargs, context=context)
+        return await func(self, message, *args, **kwargs)
 
     return wrapper

@@ -5,6 +5,7 @@ description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.16.4",
+    "dishka>=1.7.1",
     "disnake>=2.10.1",
     "psycopg[binary]>=3.2.9",
     "pydantic>=2.11.7",
@@ -29,7 +30,7 @@ module-root = ""
 
 [tool.ruff]
 lint.select = ["ALL"]  # TODO: change this
-lint.ignore = ["D", "COM", "ANN", "SIM", "EM", "TRY", "TD", "FIX", "S311", "RUF012", "FBT"]
+lint.ignore = ["D", "COM", "ANN", "SIM", "EM", "TRY", "TD", "FIX", "S311", "RUF012", "FBT", "PLR0913"]
 exclude = [".ipython_startup.py"]
 
 [tool.alembic]
