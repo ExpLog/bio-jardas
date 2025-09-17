@@ -71,7 +71,9 @@ class ReplyCog(Cog):
             message_group_id=reply.group_id,
             message_id=reply.id,
         )
-        await message.reply(reply.text)
+        # the original bot doesn't actually send a reply, only a message to the same
+        # channel, but I'm not refactoring the reply concept to response
+        await message.channel.send(reply.text)
 
     # reply commands
     # root
