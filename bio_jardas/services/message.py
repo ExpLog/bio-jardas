@@ -55,6 +55,13 @@ class MessageService:
         bind_contextvars(roll_type=message_group_choice.roll_type)
         return await self.repo.get_random_message(message_group_choice.group_id)
 
+    async def random_reply_from_group(self, message_group_name: str):
+        message_groups = await self.repo.get_message_groups(names=[message_group_name])
+        message_group = first(message_groups)
+        if not message_group:
+            raise EntityNotFoundError(MessageGroup, message_group_name)
+        return await self.repo.get_random_message(message_group.id)
+
     async def apply_defaults_to_channel(
         self, channel_id: int
     ) -> list[MessageGroupChoice]:

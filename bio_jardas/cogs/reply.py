@@ -53,6 +53,16 @@ class ReplyCog(BaseCog):
             listener_event="on_message",
         )
 
+        if self.bot.user.mentioned_in(message):
+            reply = await message_service.random_reply_from_group("mention")
+            await logger.ainfo(
+                "Replied to mention",
+                message_group_id=reply.group_id,
+                message_id=reply.id,
+            )
+            await message.channel.send(reply.text)
+            return
+
         # TODO: always reply when the user replies to a message
         intensity = await config_service.get_intensity()
         if random.random() > intensity.reply_probability():
