@@ -63,7 +63,6 @@ class ReplyCog(BaseCog):
             await message.channel.send(reply.text)
             return
 
-        # TODO: always reply when the user replies to a message
         intensity = await config_service.get_intensity()
         if random.random() > intensity.reply_probability():
             return
