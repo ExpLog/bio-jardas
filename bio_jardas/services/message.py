@@ -2,6 +2,7 @@ import random
 
 import structlog
 from disnake.ext.commands import Bot
+from sqlalchemy.orm import joinedload
 from structlog.contextvars import bind_contextvars
 
 from bio_jardas.db import Message, MessageGroup, MessageGroupChoice
@@ -10,6 +11,7 @@ from bio_jardas.db.repositories.message import (
     MessageGroupRepository,
     MessageRepository,
 )
+from bio_jardas.domain_objects.message import MessageGroupProbabilities
 from bio_jardas.dtos.message import UpsertMessageGroupChoice
 from bio_jardas.exceptions import JardasError
 from bio_jardas.utils import first
@@ -121,6 +123,24 @@ class MessageService:
             choice.independent_roll_probability = dto.independent_roll_probability
             choice.last_modified_by = dto.last_modified_by
         return choice
+
+    async def reply_probabilities(
+        self, snowflake_id: int
+    ) -> list[MessageGroupProbabilities]:
+        choices = await self.choice_repo.get_many(
+            MessageGroupChoice.snowflake_id == snowflake_id,
+            options=[joinedload(MessageGroupChoice.group)],
+        )
+        total_weight = sum(mgc.weight for mgc in choices)
+        return [
+            MessageGroupProbabilities(
+                group_name=choice.group.name,
+                weight=choice.weight,
+                roll=choice.independent_roll_probability,
+                total_weight=total_weight,
+            )
+            for choice in choices
+        ]
 
 
 class ChannelHasMessageGroupsError(JardasError):

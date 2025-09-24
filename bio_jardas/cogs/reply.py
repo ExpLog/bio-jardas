@@ -29,7 +29,7 @@ from bio_jardas.observability import (
 from bio_jardas.services.config import ConfigService
 from bio_jardas.services.message import ChannelHasMessageGroupsError, MessageService
 from bio_jardas.shortcuts import author_id, channel_id
-from bio_jardas.utils import probability_as_percentage, standard_embed
+from bio_jardas.utils import standard_embed
 
 logger = structlog.stdlib.get_logger()
 
@@ -113,18 +113,15 @@ class ReplyCog(BaseCog):
     @cooldown(1, 10, BucketType.channel)
     @cog_inject
     async def reply_show_channel(
-        self, context: Context, *, message_repo: FromDishka[MessageRepo]
+        self,
+        context: Context,
+        *,
+        message_service: FromDishka[MessageService],
     ) -> None:
-        message_group_choices = await message_repo.get_message_group_choices(
-            channel_id(context), load_message_groups=True
-        )
+        probabilities = await message_service.reply_probabilities(channel_id(context))
         embed = standard_embed("Channel Message Groups")
-        total_weight = sum(mgc.weight for mgc in message_group_choices)
-        for mgc in message_group_choices:
-            weight = probability_as_percentage(mgc.weight / total_weight)
-            roll = probability_as_percentage(mgc.independent_roll_probability)
-            value = f"w={weight} r={roll}"
-            embed.add_field(mgc.group.name, value)
+        for probability in probabilities:
+            embed.add_field(probability.group_name, probability.percentages)
         await context.send(embed=embed, reference=context.message)
 
     @reply_show.command(name="user")
@@ -138,17 +135,11 @@ class ReplyCog(BaseCog):
         message_service: FromDishka[MessageService],
     ) -> None:
         target = member if member else context.author
-        message_group_choices = await message_service.repo.get_message_group_choices(
-            target.id, load_message_groups=True
-        )
+        probabilities = await message_service.reply_probabilities(target.id)
         embed = standard_embed("User Message Groups", description=target.name)
-        total_weight = sum(mgc.weight for mgc in message_group_choices)
-        for mgc in message_group_choices:
-            weight = probability_as_percentage(mgc.weight / total_weight)
-            roll = probability_as_percentage(mgc.independent_roll_probability)
-            value = f"w={weight} r={roll}"
-            embed.add_field(mgc.group.name, value)
-        if not message_group_choices:
+        for probability in probabilities:
+            embed.add_field(probability.group_name, probability.percentages)
+        if not probabilities:
             embed.add_field("no one likes you", "")
         await context.send(embed=embed, reference=context.message)
 
