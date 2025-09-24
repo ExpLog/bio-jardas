@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 
 from sqlalchemy import (
     ColumnElement,
@@ -52,7 +53,7 @@ class CRUDRepository[T: Base]:
         :param flush: Flush session. Overrides CRUDRepository flush setting if not None.
         :return: The same list of entities that was passed into the function.
         """
-        self.session.add(entities)
+        self.session.add_all(entities)
         await self._flush_session(flush)
         return entities
 
@@ -157,8 +158,8 @@ class CRUDRepository[T: Base]:
     async def get_many(
         self,
         *filters: ColumnElement[bool],
-        order_by: list[ColumnExpressionArgument] | None = None,
-        limit: int = 20,
+        order_by: Sequence[ColumnExpressionArgument] | None = None,
+        limit: int = 100,
         offset: int = 0,
         options: list[ExecutableOption] | None = None,
         for_update: bool = False,

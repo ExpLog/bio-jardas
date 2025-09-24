@@ -7,7 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bio_jardas.bot import BioJardas
 from bio_jardas.db.base import transaction
-from bio_jardas.db.repositories.message import MessageRepo
+from bio_jardas.db.repositories.message import (
+    MessageGroupChoiceRepository,
+    MessageGroupRepository,
+    MessageRepo,
+    MessageRepository,
+)
 from bio_jardas.services.config import ConfigService
 from bio_jardas.services.message import MessageService
 
@@ -32,9 +37,27 @@ class AsyncSessionProvider(Provider):
 
 
 class RepositoryProvider(Provider):
-    @provide(scope=Scope.REQUEST)
+    scope = Scope.REQUEST
+
+    @provide()
     async def message_repo(self, session: AsyncSession) -> MessageRepo:
         return MessageRepo(session)
+
+    @provide()
+    async def message_repository(self, session: AsyncSession) -> MessageRepository:
+        return MessageRepository(session)
+
+    @provide()
+    async def message_group_repository(
+        self, session: AsyncSession
+    ) -> MessageGroupRepository:
+        return MessageGroupRepository(session)
+
+    @provide()
+    async def message_group_choice_repository(
+        self, session: AsyncSession
+    ) -> MessageGroupChoiceRepository:
+        return MessageGroupChoiceRepository(session)
 
 
 class ServiceProvider(Provider):
@@ -42,9 +65,13 @@ class ServiceProvider(Provider):
 
     @provide()
     async def message_service(
-        self, bot: BioJardas, repo: MessageRepo
+        self,
+        bot: BioJardas,
+        message_repo: MessageRepository,
+        group_repo: MessageGroupRepository,
+        choice_repo: MessageGroupChoiceRepository,
     ) -> MessageService:
-        return MessageService(bot, repo)
+        return MessageService(bot, message_repo, group_repo, choice_repo)
 
     @provide()
     async def config_service(self, session: AsyncSession) -> ConfigService:

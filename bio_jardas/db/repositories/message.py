@@ -125,7 +125,7 @@ class MessageRepository(CRUDRepository[Message]):
         :return: A single message.
         """
         messages = await self.get_many(
-            Message.group_id == message_group_id, order_by=func.random(), limit=1
+            Message.group_id == message_group_id, order_by=[func.random()], limit=1
         )
         if not messages:
             raise EntityNotFoundError(Message, "random")
