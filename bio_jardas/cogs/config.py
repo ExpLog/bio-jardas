@@ -11,7 +11,7 @@ from disnake.ext.commands import (
 
 from bio_jardas import emojis
 from bio_jardas.cogs.base import BaseCog
-from bio_jardas.db.repositories.message import MessageRepo
+from bio_jardas.db.repositories.message import MessageGroupRepository
 from bio_jardas.dependency_injection import cog_inject
 from bio_jardas.dtos.config import ReplyIntensityEnum
 from bio_jardas.services.config import ConfigService
@@ -47,10 +47,10 @@ class ConfigCog(BaseCog):
         context: Context[Bot],
         *,
         config_service: FromDishka[ConfigService],
-        message_repo: FromDishka[MessageRepo],
+        group_repo: FromDishka[MessageGroupRepository],
     ):
         intensity_config = await config_service.get_intensity()
-        assigned_message_groups = await message_repo.get_assigned_message_groups(
+        assigned_message_groups = await group_repo.get_assigned_message_groups(
             context.channel.id
         )
 

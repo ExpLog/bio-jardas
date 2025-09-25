@@ -1,7 +1,9 @@
 import random
+from collections.abc import Sequence
 
 import structlog
 from disnake.ext.commands import Bot
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from structlog.contextvars import bind_contextvars
 
@@ -141,6 +143,18 @@ class MessageService:
             )
             for choice in choices
         ]
+
+    async def delete_message_group_choices(
+        self, snowflake_id: int, group_names: Sequence[str] | None = None
+    ) -> int:
+        filters = [MessageGroupChoice.snowflake_id == snowflake_id]
+        if group_names:
+            filters.append(
+                MessageGroupChoice.group_id.in_(
+                    select(MessageGroup.id).where(MessageGroup.name.in_(group_names))
+                )
+            )
+        return await self.choice_repo.delete_where(*filters)
 
 
 class ChannelHasMessageGroupsError(JardasError):

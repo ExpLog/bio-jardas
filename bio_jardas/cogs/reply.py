@@ -17,7 +17,6 @@ from structlog.contextvars import bind_contextvars
 from bio_jardas import emojis
 from bio_jardas.cogs.base import BaseCog
 from bio_jardas.db.exceptions import EntityNotFoundError
-from bio_jardas.db.repositories.message import MessageRepo
 from bio_jardas.decorators import skip_bots_and_commands
 from bio_jardas.dependency_injection import cog_inject
 from bio_jardas.dtos.message import UpsertMessageGroupChoice
@@ -180,11 +179,11 @@ class ReplyCog(BaseCog):
         self,
         context: Context,
         *group_names: str,
-        message_repo: FromDishka[MessageRepo],
+        message_service: FromDishka[MessageService],
     ) -> None:
         if not _ensure_group_names(context, group_names):
             return
-        deleted_count = await message_repo.delete_message_group_choices(
+        deleted_count = await message_service.delete_message_group_choices(
             context.channel.id, group_names
         )
         await logger.ainfo(
@@ -198,9 +197,12 @@ class ReplyCog(BaseCog):
     @reply_channel.command(name="clear")
     @cog_inject
     async def reply_channel_clear(
-        self, context: Context, *, message_repo: FromDishka[MessageRepo]
+        self,
+        context: Context,
+        *,
+        message_service: FromDishka[MessageService],
     ) -> None:
-        deleted_count = await message_repo.delete_message_group_choices(
+        deleted_count = await message_service.delete_message_group_choices(
             channel_id(context)
         )
         await logger.ainfo(
@@ -268,11 +270,11 @@ class ReplyCog(BaseCog):
         context: Context,
         member: Member,
         *group_names: str,
-        message_repo: FromDishka[MessageRepo],
+        message_service: FromDishka[MessageService],
     ) -> None:
         if not _ensure_group_names(context, group_names):
             return
-        deleted_count = await message_repo.delete_message_group_choices(
+        deleted_count = await message_service.delete_message_group_choices(
             member.id, group_names
         )
         await logger.ainfo(
@@ -290,9 +292,9 @@ class ReplyCog(BaseCog):
         context: Context,
         member: Member,
         *,
-        message_repo: FromDishka[MessageRepo],
+        message_service: FromDishka[MessageService],
     ) -> None:
-        deleted_count = await message_repo.delete_message_group_choices(member.id)
+        deleted_count = await message_service.delete_message_group_choices(member.id)
         await logger.ainfo(
             "Removed message groups from user",
             deleted_count=deleted_count,

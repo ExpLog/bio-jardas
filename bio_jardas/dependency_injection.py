@@ -10,7 +10,6 @@ from bio_jardas.db.base import transaction
 from bio_jardas.db.repositories.message import (
     MessageGroupChoiceRepository,
     MessageGroupRepository,
-    MessageRepo,
     MessageRepository,
 )
 from bio_jardas.services.config import ConfigService
@@ -38,10 +37,6 @@ class AsyncSessionProvider(Provider):
 
 class RepositoryProvider(Provider):
     scope = Scope.REQUEST
-
-    @provide()
-    async def message_repo(self, session: AsyncSession) -> MessageRepo:
-        return MessageRepo(session)
 
     @provide()
     async def message_repository(self, session: AsyncSession) -> MessageRepository:
