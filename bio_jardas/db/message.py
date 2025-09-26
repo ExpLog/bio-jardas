@@ -57,6 +57,12 @@ class Message(AuditBase):
         sa.Boolean, nullable=False, default=False, server_default="false"
     )
 
+    def interpolate_mention(self, mention: str) -> str:
+        text = self.text
+        if "$mention" not in text:
+            text = f"$mention, {text}"
+        return text.replace("$mention", mention)
+
 
 class MessageGroupChoice(AuditBase):
     __tablename__ = "message_group_choice"

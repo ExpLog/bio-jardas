@@ -27,7 +27,7 @@ Discord bot for the Aveiro Discord community.
 * [ ] event reminder
 * [x] huggies
 * [ ] roast
-  * [ ] roast user
+  * [x] roast user
   * [ ] random roast
 * [ ] nuke
   * [ ] nuke count
