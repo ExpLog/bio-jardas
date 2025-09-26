@@ -9,6 +9,7 @@ from disnake.ext.commands import (
     Cog,
     CommandError,
     Context,
+    check,
     command,
     cooldown,
     group,
@@ -17,6 +18,7 @@ from structlog.contextvars import bind_contextvars
 
 from bio_jardas import emojis
 from bio_jardas.cogs.base import BaseCog
+from bio_jardas.command_checks import is_bot_owner
 from bio_jardas.db.exceptions import EntityNotFoundError
 from bio_jardas.decorators import skip_bots_and_commands
 from bio_jardas.dependency_injection import cog_inject
@@ -85,15 +87,17 @@ class ReplyCog(BaseCog):
         # channel, but I'm not refactoring the reply concept to response
         await message.channel.send(reply.text)
 
-    # reply commands
+    # reply admin commands
     # root
     @group(name="reply", invoke_without_command=True, case_insensitive=True)
+    @check(is_bot_owner)
     async def reply(self, context: Context) -> None:
         # TODO: add some help text
         await context.reply("WIP help")
 
     # discoverability
     @reply.command(name="groups")
+    @check(is_bot_owner)
     @cooldown(1, 60, BucketType.channel)
     @cog_inject
     async def reply_groups(
@@ -102,16 +106,18 @@ class ReplyCog(BaseCog):
         *,
         message_service: FromDishka[MessageService],
     ) -> None:
-        message_groups = await message_service.repo.get_message_groups()
-        message = ", ".join(f"`{mg.name}`" for mg in message_groups)
+        groups = await message_service.group_repo.get_many()
+        message = ", ".join(f"`{mg.name}`" for mg in groups)
         await context.message.reply(message)
 
     @reply.group(name="show", invoke_without_command=True)
+    @check(is_bot_owner)
     async def reply_show(self, context: Context) -> None:
         # TODO: add some help text
         await context.reply("WIP help")
 
     @reply_show.command(name="channel")
+    @check(is_bot_owner)
     @cooldown(1, 10, BucketType.channel)
     @cog_inject
     async def reply_show_channel(
@@ -127,6 +133,7 @@ class ReplyCog(BaseCog):
         await context.send(embed=embed, reference=context.message)
 
     @reply_show.command(name="user")
+    @check(is_bot_owner)
     @cooldown(1, 10, BucketType.channel)
     @cog_inject
     async def reply_show_user(
@@ -147,11 +154,13 @@ class ReplyCog(BaseCog):
 
     # channel assignment commands (current channel)
     @reply.group(name="channel", invoke_without_command=True)
+    @check(is_bot_owner)
     async def reply_channel(self, context: Context) -> None:
         # TODO: add some help text
         await context.reply("WIP help")
 
     @reply_channel.command(name="add", aliases=("assign", "+"))
+    @check(is_bot_owner)
     @cog_inject
     async def reply_channel_add(
         self,
@@ -177,6 +186,7 @@ class ReplyCog(BaseCog):
         await context.message.add_reaction(emojis.SUCCESS)
 
     @reply_channel.command(name="remove", aliases=("rm", "-"))
+    @check(is_bot_owner)
     @cog_inject
     async def reply_channel_remove(
         self,
@@ -198,6 +208,7 @@ class ReplyCog(BaseCog):
         await context.message.add_reaction(reaction)
 
     @reply_channel.command(name="clear")
+    @check(is_bot_owner)
     @cog_inject
     async def reply_channel_clear(
         self,
@@ -215,6 +226,7 @@ class ReplyCog(BaseCog):
         await context.message.add_reaction(emojis.SUCCESS)
 
     @reply_channel.command(name="apply-defaults")
+    @check(is_bot_owner)
     @cog_inject
     async def reply_channel_apply_defaults(
         self,
@@ -232,11 +244,13 @@ class ReplyCog(BaseCog):
 
     # user assignments
     @reply.group(name="user", invoke_without_command=True)
+    @check(is_bot_owner)
     async def reply_user(self, context: Context) -> None:
         # TODO: add some help text
         await context.reply("WIP help")
 
     @reply_user.command(name="add", aliases=("assign", "+"))
+    @check(is_bot_owner)
     @cog_inject
     async def reply_user_add(
         self,
@@ -269,6 +283,7 @@ class ReplyCog(BaseCog):
         await context.message.add_reaction(emojis.SUCCESS)
 
     @reply_user.command(name="remove", aliases=("rm", "-"))
+    @check(is_bot_owner)
     @cog_inject
     async def reply_user_remove(
         self,
@@ -291,6 +306,7 @@ class ReplyCog(BaseCog):
         await context.message.add_reaction(reaction)
 
     @reply_user.command(name="clear")
+    @check(is_bot_owner)
     @cog_inject
     async def reply_user_clear(
         self,

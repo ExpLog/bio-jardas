@@ -161,9 +161,10 @@ class MessageService:
     async def add_vocabulary(
         self, text: str, message_group_name: str, user_id: int
     ) -> Message:
+        clean_text = text.strip().strip('"').strip("'")
         group = await self.group_repo.get_one(MessageGroup.name == message_group_name)
         message = Message(
-            text=text.strip(), group=group, created_by=user_id, updated_by=user_id
+            text=clean_text, group=group, created_by=user_id, updated_by=user_id
         )
         await self.msg_repo.add(message)
         await logger.ainfo(

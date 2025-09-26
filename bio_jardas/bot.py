@@ -1,7 +1,13 @@
 import structlog
 from dishka import AsyncContainer
 from disnake import Intents
-from disnake.ext.commands import Bot, CommandError, CommandOnCooldown, Context
+from disnake.ext.commands import (
+    Bot,
+    CheckFailure,
+    CommandError,
+    CommandOnCooldown,
+    Context,
+)
 
 from bio_jardas import emojis
 from bio_jardas.observability import (
@@ -41,6 +47,10 @@ class BioJardas(Bot):
         if isinstance(exception, CommandOnCooldown):
             # command/cog error handler will still run if defined
             await context.message.add_reaction(emojis.WAIT)
+            return
+
+        if isinstance(exception, CheckFailure):
+            await context.message.add_reaction(emojis.STOP)
             return
 
         command = context.command
