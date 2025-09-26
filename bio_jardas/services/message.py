@@ -72,7 +72,7 @@ class MessageService:
         bind_contextvars(roll_type=message_group_choice.roll_type)
         return await self.msg_repo.get_random(message_group_choice.group_id)
 
-    async def random_reply_from_group(self, message_group_name: str):
+    async def random_message_from_group(self, message_group_name: str):
         message_group = await self.group_repo.get_one(
             MessageGroup.name == message_group_name
         )
@@ -128,9 +128,7 @@ class MessageService:
             choice.updated_by = dto.updated_by
         return choice
 
-    async def reply_probabilities(
-        self, snowflake_id: int
-    ) -> list[MessageGroupProbabilities]:
+    async def probabilities(self, snowflake_id: int) -> list[MessageGroupProbabilities]:
         choices = await self.choice_repo.get_many(
             MessageGroupChoice.snowflake_id == snowflake_id,
             options=[joinedload(MessageGroupChoice.group)],

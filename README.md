@@ -25,7 +25,7 @@ Discord bot for the Aveiro Discord community.
 * [ ] good morning
 * [ ] fortune-teller
 * [ ] event reminder
-* [ ] huggies
+* [x] huggies
 * [ ] roast
   * [ ] roast user
   * [ ] random roast

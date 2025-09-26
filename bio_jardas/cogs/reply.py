@@ -10,7 +10,6 @@ from disnake.ext.commands import (
     CommandError,
     Context,
     check,
-    command,
     cooldown,
     group,
 )
@@ -56,7 +55,7 @@ class ReplyCog(BaseCog):
         )
 
         if self.bot.user.mentioned_in(message):
-            reply = await message_service.random_reply_from_group("mention")
+            reply = await message_service.random_message_from_group("mention")
             await logger.ainfo(
                 "Replied to mention",
                 message_group_id=reply.group_id,
@@ -124,7 +123,7 @@ class ReplyCog(BaseCog):
         *,
         message_service: FromDishka[MessageService],
     ) -> None:
-        probabilities = await message_service.reply_probabilities(channel_id(context))
+        probabilities = await message_service.probabilities(channel_id(context))
         embed = standard_embed("Channel Message Groups")
         for probability in probabilities:
             embed.add_field(probability.group_name, probability.percentages)
@@ -142,7 +141,7 @@ class ReplyCog(BaseCog):
         message_service: FromDishka[MessageService],
     ) -> None:
         target = member if member else context.author
-        probabilities = await message_service.reply_probabilities(target.id)
+        probabilities = await message_service.probabilities(target.id)
         embed = standard_embed("User Message Groups", description=target.name)
         for probability in probabilities:
             embed.add_field(probability.group_name, probability.percentages)
@@ -341,48 +340,6 @@ class ReplyCog(BaseCog):
             bind_exception_info(exception)
         await logger.aerror("Failed to apply default message groups to channel")
         await context.message.add_reaction(emojis.FAILURE)
-
-
-class VocabularyCog(BaseCog):
-    @command(name="vocabulary")
-    @cog_inject
-    async def add_vocabulary(
-        self,
-        context: Context,
-        *,
-        text: str,
-        message_service: FromDishka[MessageService],
-    ):
-        reply = await message_service.add_vocabulary(
-            text, "user_added_vocabulary", author_id(context)
-        )
-        await logger.ainfo(
-            "Replied to added vocabulary",
-            message_group_id=reply.group_id,
-            message_id=reply.id,
-        )
-        await context.channel.send(reply.text)
-
-    @command(name="vocabulary_admin")
-    @check(is_bot_owner)
-    @cog_inject
-    async def add_admin_vocabulary(
-        self,
-        context: Context,
-        message_group_name: str,
-        *,
-        text: str,
-        message_service: FromDishka[MessageService],
-    ):
-        reply = await message_service.add_vocabulary(
-            text, message_group_name, author_id(context)
-        )
-        await logger.ainfo(
-            "Replied to added vocabulary",
-            message_group_id=reply.group_id,
-            message_id=reply.id,
-        )
-        await context.channel.send(reply.text)
 
 
 async def _ensure_group_names(context: Context, group_names: tuple[str, ...]) -> bool:
