@@ -10,7 +10,7 @@ Discord bot for the Aveiro Discord community.
   * [x] general replies
   * [x] mention replies
   * [ ] -mos replies
-  * [ ] add to default vocabulary
+  * [x] add to default vocabulary
   * [ ] add to any vocabulary
   * [x] replies configuration
     * [x] channel
@@ -39,4 +39,5 @@ Discord bot for the Aveiro Discord community.
 * [ ] differentiate between user error and internal errors in logs
 * [ ] change `Config` model to `BotConfig`
 * [ ] add simple permission RBAC system with hardcoded roles
+  * we'll rely on configured roles in the discord server
 * [x] dependency injection

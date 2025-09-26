@@ -37,9 +37,7 @@ logger = structlog.stdlib.get_logger()
 
 
 # TODO: differentiate between internal errors and user errors in logs
-# TODO: add simple permission system for configuration
 # TODO: actually obey the disabled columns
-# TODO: separate cog into administrative commands and simple user commands
 class ReplyCog(BaseCog):
     @Cog.listener("on_message")
     @skip_bots_and_commands
