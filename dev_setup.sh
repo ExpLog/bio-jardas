@@ -8,7 +8,7 @@ make db/upgrade
 
 sleep 1
 
-uv run etl/load_messages.py --csv etl/data/responses.csv
+uv run --env-file=.env etl/load_messages.py --csv etl/data/responses.csv
 
 PSQL_DSN="postgresql://postgres:postgres@localhost:65432/postgres"
 psql "${PSQL_DSN}" -c '

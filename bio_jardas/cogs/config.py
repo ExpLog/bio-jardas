@@ -14,7 +14,9 @@ from bio_jardas.cogs.base import BaseCog
 from bio_jardas.db.repositories.message import MessageGroupRepository
 from bio_jardas.dependency_injection import cog_inject
 from bio_jardas.dtos.config import ReplyIntensityEnum
+from bio_jardas.observability import bind_exception_info
 from bio_jardas.services.config import ConfigService
+from bio_jardas.shortcuts import author_id
 from bio_jardas.utils import probability_as_percentage, standard_embed
 
 logger = structlog.stdlib.get_logger()
@@ -31,13 +33,15 @@ class ConfigCog(BaseCog):
         *,
         config_service: FromDishka[ConfigService],
     ) -> None:
-        await config_service.update_intensity(ReplyIntensityEnum(new_intensity))
+        user_id = author_id(context)
+        await config_service.update_intensity(ReplyIntensityEnum(new_intensity), user_id)
         await logger.ainfo("Intensity updated")
         await context.message.add_reaction(emojis.SUCCESS)
 
     @intensity.error
     async def intensity_error_handler(self, context: Context, exception: CommandError):
-        await logger.ainfo("Failed to set new intensity", exception=str(exception))
+        bind_exception_info(exception)
+        await logger.aerror("Failed to set new intensity")
         await context.message.add_reaction(emojis.FAILURE)
 
     @command()

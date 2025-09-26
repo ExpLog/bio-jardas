@@ -8,16 +8,15 @@ While this is a core construct of the bot, it's not a feature by itself. It's da
 that's leveraged by actual features.
 """
 
-from datetime import datetime
 from typing import Literal
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from bio_jardas.db.base import Base
+from bio_jardas.db.base import AuditBase
 
 
-class MessageGroup(Base):
+class MessageGroup(AuditBase):
     __tablename__ = "message_group"
     __table_args__ = {"schema": "message"}
 
@@ -35,24 +34,12 @@ class MessageGroup(Base):
         cascade="all, delete-orphan",
         lazy="raise",
     )
-
-    last_modified_by: Mapped[int] = mapped_column(
-        sa.BigInteger,
-        nullable=False,
-        comment="Snowflake id of the user. 0 for legacy.",
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True),
-        nullable=False,
-        server_default=sa.func.now(),
-        onupdate=sa.func.now(),
+    disabled: Mapped[bool] = mapped_column(
+        sa.Boolean, nullable=False, default=False, server_default="false"
     )
 
 
-class Message(Base):
+class Message(AuditBase):
     __tablename__ = "message"
     __table_args__ = {"schema": "message"}
 
@@ -66,24 +53,12 @@ class Message(Base):
         back_populates="messages", lazy="raise"
     )
 
-    # TODO: add some moderation metadata?
-    last_modified_by: Mapped[int] = mapped_column(
-        sa.BigInteger,
-        nullable=False,
-        comment="Snowflake id of the user. 0 for legacy.",
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True),
-        nullable=False,
-        server_default=sa.func.now(),
-        onupdate=sa.func.now(),
+    disabled: Mapped[bool] = mapped_column(
+        sa.Boolean, nullable=False, default=False, server_default="false"
     )
 
 
-class MessageGroupChoice(Base):
+class MessageGroupChoice(AuditBase):
     __tablename__ = "message_group_choice"
     __table_args__ = (
         sa.UniqueConstraint("snowflake_id", "group_id"),
@@ -139,19 +114,8 @@ class MessageGroupChoice(Base):
         comment="Whether the snowflake_id refers to a user",
     )
 
-    last_modified_by: Mapped[int] = mapped_column(
-        sa.BigInteger,
-        nullable=False,
-        comment="Snowflake id of the user. 0 for legacy.",
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True),
-        nullable=False,
-        server_default=sa.func.now(),
-        onupdate=sa.func.now(),
+    disabled: Mapped[bool] = mapped_column(
+        sa.Boolean, nullable=False, default=False, server_default="false"
     )
 
     @property

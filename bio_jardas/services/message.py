@@ -79,7 +79,7 @@ class MessageService:
         return await self.msg_repo.get_random(message_group.id)
 
     async def apply_defaults_to_channel(
-        self, channel_id: int
+        self, channel_id: int, author_id: int
     ) -> list[MessageGroupChoice]:
         has_choices = await self.choice_repo.exists(
             MessageGroupChoice.snowflake_id == channel_id
@@ -96,7 +96,8 @@ class MessageService:
                 group_id=mg.id,
                 weight=DEFAULT_CHANNEL_MESSAGE_GROUPS[mg.name],
                 is_channel=True,
-                last_modified_by=self.bot.user.id,
+                created_by=author_id,
+                updated_by=author_id,
             )
             for mg in message_groups
         ]
@@ -117,13 +118,14 @@ class MessageService:
                 is_user=dto.is_user,
                 weight=dto.weight,
                 independent_roll_probability=dto.independent_roll_probability,
-                last_modified_by=dto.last_modified_by,
+                created_by=dto.updated_by,
+                updated_by=dto.updated_by
             )
             await self.choice_repo.add(choice)
         else:
             choice.weight = dto.weight
             choice.independent_roll_probability = dto.independent_roll_probability
-            choice.last_modified_by = dto.last_modified_by
+            choice.updated_by = dto.updated_by
         return choice
 
     async def reply_probabilities(

@@ -1,8 +1,8 @@
-"""add config
+"""Adds config
 
-Revision ID: 916737379902
-Revises: d9830eb71627
-Create Date: 2025-08-23 23:02:35.585500
+Revision ID: c276d5ad20b3
+Revises: 12a41310ec61
+Create Date: 2025-09-25 12:11:24.243901
 
 """
 
@@ -13,8 +13,8 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "916737379902"
-down_revision: str | Sequence[str] | None = "d9830eb71627"
+revision: str = "c276d5ad20b3"
+down_revision: str | Sequence[str] | None = "12a41310ec61"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -30,6 +30,18 @@ def upgrade() -> None:
             postgresql.JSONB(astext_type=sa.Text()),
             server_default="{}",
             nullable=False,
+        ),
+        sa.Column(
+            "created_by",
+            sa.BigInteger(),
+            nullable=False,
+            comment="Snowflake id of the user. 0 for legacy.",
+        ),
+        sa.Column(
+            "updated_by",
+            sa.BigInteger(),
+            nullable=False,
+            comment="Snowflake id of the user. 0 for legacy.",
         ),
         sa.Column(
             "created_at",
@@ -48,10 +60,6 @@ def upgrade() -> None:
     )
     op.create_index(op.f("ix_config_name"), "config", ["name"], unique=False)
     # ### end Alembic commands ###
-    op.execute("""
-        INSERT INTO config(name, data)
-        VALUES ('intensity', '{"intensity": "normal"}'::json)
-    """)
 
 
 def downgrade() -> None:

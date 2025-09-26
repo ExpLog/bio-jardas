@@ -1,8 +1,8 @@
-"""initial message related models
+"""Adds message models
 
-Revision ID: d9830eb71627
+Revision ID: 12a41310ec61
 Revises: 3fb673f632e4
-Create Date: 2025-08-23 21:20:07.835446
+Create Date: 2025-09-25 12:10:55.028832
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "d9830eb71627"
+revision: str = "12a41310ec61"
 down_revision: str | Sequence[str] | None = "3fb673f632e4"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -27,8 +27,15 @@ def upgrade() -> None:
         sa.Column(
             "description", sa.String(length=1000), server_default="", nullable=False
         ),
+        sa.Column("disabled", sa.Boolean(), server_default="false", nullable=False),
         sa.Column(
-            "last_modified_by",
+            "created_by",
+            sa.BigInteger(),
+            nullable=False,
+            comment="Snowflake id of the user. 0 for legacy.",
+        ),
+        sa.Column(
+            "updated_by",
             sa.BigInteger(),
             nullable=False,
             comment="Snowflake id of the user. 0 for legacy.",
@@ -54,8 +61,15 @@ def upgrade() -> None:
         "message",
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column("group_id", sa.BigInteger(), nullable=False),
+        sa.Column("disabled", sa.Boolean(), server_default="false", nullable=False),
         sa.Column(
-            "last_modified_by",
+            "created_by",
+            sa.BigInteger(),
+            nullable=False,
+            comment="Snowflake id of the user. 0 for legacy.",
+        ),
+        sa.Column(
+            "updated_by",
             sa.BigInteger(),
             nullable=False,
             comment="Snowflake id of the user. 0 for legacy.",
@@ -118,8 +132,15 @@ def upgrade() -> None:
             nullable=False,
             comment="Whether the snowflake_id refers to a user",
         ),
+        sa.Column("disabled", sa.Boolean(), server_default="false", nullable=False),
         sa.Column(
-            "last_modified_by",
+            "created_by",
+            sa.BigInteger(),
+            nullable=False,
+            comment="Snowflake id of the user. 0 for legacy.",
+        ),
+        sa.Column(
+            "updated_by",
             sa.BigInteger(),
             nullable=False,
             comment="Snowflake id of the user. 0 for legacy.",

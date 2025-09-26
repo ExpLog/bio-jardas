@@ -55,7 +55,11 @@ async def load_csv(session: AsyncSession, csv_path: Path) -> InsertedRows:
     df["message_group"].unique().tolist()
     message_group_names = df["message_group"].unique().tolist()
     message_groups = [
-        MessageGroup(name=name, last_modified_by=ETL_SYNTHETIC_SNOWFLAKE_ID)
+        MessageGroup(
+            name=name,
+            created_by=ETL_SYNTHETIC_SNOWFLAKE_ID,
+            updated_by=ETL_SYNTHETIC_SNOWFLAKE_ID,
+        )
         for name in message_group_names
     ]
     session.add_all(message_groups)
@@ -68,7 +72,8 @@ async def load_csv(session: AsyncSession, csv_path: Path) -> InsertedRows:
         {
             "text": text,
             "group_id": message_group_name_to_id[group],
-            "last_modified_by": ETL_SYNTHETIC_SNOWFLAKE_ID,
+            "created_by": ETL_SYNTHETIC_SNOWFLAKE_ID,
+            "updated_by": ETL_SYNTHETIC_SNOWFLAKE_ID,
         }
         for group, text in df.itertuples(index=False)
     ]

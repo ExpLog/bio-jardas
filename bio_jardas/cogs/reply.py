@@ -167,7 +167,7 @@ class ReplyCog(BaseCog):
             independent_roll_probability=independent_roll_probability,
             is_channel=True,
             is_user=False,
-            last_modified_by=author_id(context),
+            updated_by=author_id(context),
         )
         await message_service.add_or_update_message_group_choice(dto)
         await logger.ainfo("Added message group to channel")
@@ -219,7 +219,7 @@ class ReplyCog(BaseCog):
         *,
         message_service: FromDishka[MessageService],
     ) -> None:
-        await message_service.apply_defaults_to_channel(context.channel.id)
+        await message_service.apply_defaults_to_channel(channel_id(context), author_id(context))
         await logger.ainfo(
             "Assigned default message groups to channel",
         )
@@ -255,7 +255,7 @@ class ReplyCog(BaseCog):
             independent_roll_probability=independent_roll_probability,
             is_channel=False,
             is_user=True,
-            last_modified_by=author_id(context),
+            updated_by=author_id(context),
         )
         await message_service.add_or_update_message_group_choice(dto)
         await logger.ainfo(

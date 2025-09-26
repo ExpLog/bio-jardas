@@ -8,7 +8,6 @@ from bio_jardas.dtos.config import ReplyIntensityConfig, ReplyIntensityEnum
 
 logger = structlog.stdlib.get_logger()
 
-
 REPLY_INTENSITY_MAP = {
     "sleep": ReplyIntensityEnum.SLEEPING,
     "puny": ReplyIntensityEnum.PUNY,
@@ -32,11 +31,25 @@ class ConfigService:
             return ReplyIntensityConfig()
         return ReplyIntensityConfig(**config.data)
 
-    async def update_intensity(self, reply_intensity: ReplyIntensityEnum) -> None:
+    async def update_intensity(
+        self,
+        reply_intensity: ReplyIntensityEnum,
+        user_id: int
+    ) -> None:
         query = select(Config).where(Config.name == "intensity").with_for_update()
         config = await self.session.scalar(query)
-        if not config:
-            await logger.awarning("Config not found", config="intensity")
+        if config:
+            config.data["intensity"] = reply_intensity
+            config.updated_by = user_id
+            flag_modified(config, "data")
             return
-        config.data["intensity"] = reply_intensity
-        flag_modified(config, "data")
+
+        await logger.awarning("Config not found, creating new one.", config="intensity")
+        intensity_config = ReplyIntensityConfig(intensity=reply_intensity)
+        config = Config(
+            name="intensity",
+            data=intensity_config.model_dump(),
+            created_by=user_id,
+            updated_by=user_id
+        )
+        self.session.add(config)

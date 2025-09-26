@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from datetime import datetime
 from functools import wraps
 from typing import Any
 
@@ -22,6 +23,30 @@ class Base(DeclarativeBase):
     metadata = metadata
 
     id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+
+
+class AuditBase(Base):
+    __abstract__ = True
+
+    created_by: Mapped[int] = mapped_column(
+        sa.BigInteger,
+        nullable=False,
+        comment="Snowflake id of the user. 0 for legacy.",
+    )
+    updated_by: Mapped[int] = mapped_column(
+        sa.BigInteger,
+        nullable=False,
+        comment="Snowflake id of the user. 0 for legacy.",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        nullable=False,
+        server_default=sa.func.now(),
+        onupdate=sa.func.now(),
+    )
 
 
 engine = create_async_engine(
