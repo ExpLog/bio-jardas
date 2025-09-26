@@ -11,7 +11,7 @@ Discord bot for the Aveiro Discord community.
   * [x] mention replies
   * [ ] -mos replies
   * [x] add to default vocabulary
-  * [ ] add to any vocabulary
+  * [x] add to any vocabulary
   * [x] replies configuration
     * [x] channel
     * [x] user

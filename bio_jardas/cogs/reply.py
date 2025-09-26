@@ -363,6 +363,27 @@ class VocabularyCog(BaseCog):
         )
         await context.channel.send(reply.text)
 
+    @command(name="vocabulary_admin")
+    @check(is_bot_owner)
+    @cog_inject
+    async def add_admin_vocabulary(
+        self,
+        context: Context,
+        message_group_name: str,
+        *,
+        text: str,
+        message_service: FromDishka[MessageService],
+    ):
+        reply = await message_service.add_vocabulary(
+            text, message_group_name, author_id(context)
+        )
+        await logger.ainfo(
+            "Replied to added vocabulary",
+            message_group_id=reply.group_id,
+            message_id=reply.id,
+        )
+        await context.channel.send(reply.text)
+
 
 async def _ensure_group_names(context: Context, group_names: tuple[str, ...]) -> bool:
     if not group_names:
