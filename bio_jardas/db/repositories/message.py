@@ -21,6 +21,24 @@ class MessageRepository(CRUDRepository[Message]):
             raise EntityNotFoundError(Message, "random")
         return messages[0]
 
+    async def get_random_by_group_name(self, message_group_name: str) -> Message:
+        """
+        Get a random message from a message group.
+        :param message_group_name: A MessageGroup.name.
+        :return: A single message.
+        """
+        query = (
+            select(Message)
+            .join(MessageGroup)
+            .where(MessageGroup.name == message_group_name)
+            .order_by(func.random())
+            .limit(1)
+        )
+        message = await self.session.scalar(query)
+        if not message:
+            raise EntityNotFoundError(Message, "random by name")
+        return message
+
 
 class MessageGroupRepository(CRUDRepository[MessageGroup]):
     model_type = MessageGroup

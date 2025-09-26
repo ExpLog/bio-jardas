@@ -13,7 +13,7 @@ from bio_jardas import emojis
 from bio_jardas.cogs.base import BaseCog
 from bio_jardas.db.repositories.message import MessageGroupRepository
 from bio_jardas.dependency_injection import cog_inject
-from bio_jardas.dtos.config import ReplyIntensityEnum
+from bio_jardas.domain_objects.config import ReplyIntensityEnum
 from bio_jardas.observability import bind_exception_info
 from bio_jardas.services.config import ConfigService
 from bio_jardas.shortcuts import author_id
@@ -34,7 +34,9 @@ class ConfigCog(BaseCog):
         config_service: FromDishka[ConfigService],
     ) -> None:
         user_id = author_id(context)
-        await config_service.update_intensity(ReplyIntensityEnum(new_intensity), user_id)
+        await config_service.update_intensity(
+            ReplyIntensityEnum(new_intensity), user_id
+        )
         await logger.ainfo("Intensity updated")
         await context.message.add_reaction(emojis.SUCCESS)
 

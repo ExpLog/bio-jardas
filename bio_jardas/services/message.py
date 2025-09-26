@@ -119,7 +119,7 @@ class MessageService:
                 weight=dto.weight,
                 independent_roll_probability=dto.independent_roll_probability,
                 created_by=dto.updated_by,
-                updated_by=dto.updated_by
+                updated_by=dto.updated_by,
             )
             await self.choice_repo.add(choice)
         else:
@@ -157,6 +157,21 @@ class MessageService:
                 )
             )
         return await self.choice_repo.delete_where(*filters)
+
+    async def add_vocabulary(
+        self, text: str, message_group_name: str, user_id: int
+    ) -> Message:
+        group = await self.group_repo.get_one(MessageGroup.name == message_group_name)
+        message = Message(
+            text=text.strip(), group=group, created_by=user_id, updated_by=user_id
+        )
+        await self.msg_repo.add(message)
+        await logger.ainfo(
+            "Added new vocabulary",
+            message_group_id=message.group_id,
+            message_id=message.id,
+        )
+        return await self.msg_repo.get_random_by_group_name("vocabulary_added")
 
 
 class ChannelHasMessageGroupsError(JardasError):

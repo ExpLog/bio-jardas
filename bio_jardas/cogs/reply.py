@@ -9,6 +9,7 @@ from disnake.ext.commands import (
     Cog,
     CommandError,
     Context,
+    command,
     cooldown,
     group,
 )
@@ -35,6 +36,8 @@ logger = structlog.stdlib.get_logger()
 
 # TODO: differentiate between internal errors and user errors in logs
 # TODO: add simple permission system for configuration
+# TODO: actually obey the disabled columns
+# TODO: separate cog into administrative commands and simple user commands
 class ReplyCog(BaseCog):
     @Cog.listener("on_message")
     @skip_bots_and_commands
@@ -219,7 +222,9 @@ class ReplyCog(BaseCog):
         *,
         message_service: FromDishka[MessageService],
     ) -> None:
-        await message_service.apply_defaults_to_channel(channel_id(context), author_id(context))
+        await message_service.apply_defaults_to_channel(
+            channel_id(context), author_id(context)
+        )
         await logger.ainfo(
             "Assigned default message groups to channel",
         )
@@ -322,6 +327,27 @@ class ReplyCog(BaseCog):
             bind_exception_info(exception)
         await logger.aerror("Failed to apply default message groups to channel")
         await context.message.add_reaction(emojis.FAILURE)
+
+
+class VocabularyCog(BaseCog):
+    @command(name="vocabulary")
+    @cog_inject
+    async def add_vocabulary(
+        self,
+        context: Context,
+        *,
+        text: str,
+        message_service: FromDishka[MessageService],
+    ):
+        reply = await message_service.add_vocabulary(
+            text, "user_added_vocabulary", author_id(context)
+        )
+        await logger.ainfo(
+            "Replied to added vocabulary",
+            message_group_id=reply.group_id,
+            message_id=reply.id,
+        )
+        await context.channel.send(reply.text)
 
 
 async def _ensure_group_names(context: Context, group_names: tuple[str, ...]) -> bool:

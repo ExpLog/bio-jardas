@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
 from bio_jardas.db.config import Config
-from bio_jardas.dtos.config import ReplyIntensityConfig, ReplyIntensityEnum
+from bio_jardas.domain_objects.config import ReplyIntensityConfig, ReplyIntensityEnum
 
 logger = structlog.stdlib.get_logger()
 
@@ -32,9 +32,7 @@ class ConfigService:
         return ReplyIntensityConfig(**config.data)
 
     async def update_intensity(
-        self,
-        reply_intensity: ReplyIntensityEnum,
-        user_id: int
+        self, reply_intensity: ReplyIntensityEnum, user_id: int
     ) -> None:
         query = select(Config).where(Config.name == "intensity").with_for_update()
         config = await self.session.scalar(query)
@@ -50,6 +48,6 @@ class ConfigService:
             name="intensity",
             data=intensity_config.model_dump(),
             created_by=user_id,
-            updated_by=user_id
+            updated_by=user_id,
         )
         self.session.add(config)

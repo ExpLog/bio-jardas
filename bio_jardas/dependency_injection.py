@@ -20,10 +20,11 @@ class BotProvider(Provider):
     @provide(scope=Scope.APP)
     async def bot(self) -> BioJardas:
         from bio_jardas.cogs.config import ConfigCog  # noqa: PLC0415
-        from bio_jardas.cogs.reply import ReplyCog  # noqa: PLC0415
+        from bio_jardas.cogs.reply import ReplyCog, VocabularyCog  # noqa: PLC0415
 
         bot = BioJardas.build()
         bot.add_cog(ReplyCog(bot))
+        bot.add_cog(VocabularyCog(bot))
         bot.add_cog(ConfigCog(bot))
         return bot
 
