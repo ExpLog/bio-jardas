@@ -26,9 +26,10 @@ Discord bot for the Aveiro Discord community.
 * [ ] fortune-teller
 * [ ] event reminder
 * [x] huggies
-* [ ] roast
+* [x] roast
   * [x] roast user
-  * [ ] random roast
+  * [x] self roast
+  * [x] random roast
 * [ ] nuke
   * [ ] nuke count
   * [ ] nuke defuse
@@ -41,3 +42,6 @@ Discord bot for the Aveiro Discord community.
 * [ ] add simple permission RBAC system with hardcoded roles
   * we'll rely on configured roles in the discord server
 * [x] dependency injection
+
+### Take a look at
+* [ ] gradio and/or streamlit for external apps

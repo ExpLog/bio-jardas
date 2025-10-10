@@ -30,6 +30,7 @@ class BioJardas(Bot):
     def build(cls) -> "BioJardas":
         intents = Intents.default()
         intents.message_content = True
+        intents.members = True
         instance = cls(command_prefix="$", intents=intents)
         instance.before_invoke(bind_command_context_to_logs)
         instance.before_message_command_invoke(bind_command_context_to_logs)
