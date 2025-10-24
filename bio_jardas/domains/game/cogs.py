@@ -2,10 +2,10 @@ import structlog
 from dishka import FromDishka
 from disnake.ext.commands import Context, command
 
-from bio_jardas.cogs.base import BaseCog
+from bio_jardas.cogs import BaseCog
 from bio_jardas.dependency_injection import cog_inject
-from bio_jardas.domain_objects.game import GameName
-from bio_jardas.services.game import GameService
+from bio_jardas.domains.game.enums import GameName
+from bio_jardas.domains.game.services import GameService
 from bio_jardas.shortcuts import author_id
 
 logger = structlog.stdlib.get_logger()
@@ -40,4 +40,5 @@ class GameCog(BaseCog):
         )
         leaderboard_displays = [lb.build_display() for lb in leaderboards]
         message = "\n\n".join(leaderboard_displays)
+        await logger.ainfo("Leaderboards displayed")
         await context.send(message)

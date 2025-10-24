@@ -1,7 +1,8 @@
+from bio_jardas.db.models.config import Config
+from bio_jardas.db.models.game import Score
+from bio_jardas.db.models.message import Message, MessageGroup, MessageGroupChoice
+
 from .base import Session, engine
-from .config import Config
-from .game import Score
-from .message import Message, MessageGroup, MessageGroupChoice
 
 __all__ = [
     "Config",

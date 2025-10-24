@@ -16,19 +16,22 @@ from disnake.ext.commands import (
 from structlog.contextvars import bind_contextvars
 
 from bio_jardas import emojis
-from bio_jardas.cogs.base import BaseCog
+from bio_jardas.cogs import BaseCog
 from bio_jardas.command_checks import is_bot_owner
 from bio_jardas.db.exceptions import EntityNotFoundError
 from bio_jardas.decorators import skip_bots_and_commands
 from bio_jardas.dependency_injection import cog_inject
-from bio_jardas.dtos.message import UpsertMessageGroupChoice
+from bio_jardas.domains.config.services import ConfigService
+from bio_jardas.domains.message.dtos import UpsertMessageGroupChoice
+from bio_jardas.domains.message.services import (
+    ChannelHasMessageGroupsError,
+    MessageService,
+)
 from bio_jardas.observability import (
     bind_error_cause,
     bind_exception_info,
     bind_listener_context_to_logs,
 )
-from bio_jardas.services.config import ConfigService
-from bio_jardas.services.message import ChannelHasMessageGroupsError, MessageService
 from bio_jardas.shortcuts import author_id, channel_id
 from bio_jardas.utils import standard_embed
 

@@ -5,9 +5,9 @@ from dishka import FromDishka
 from disnake import Member
 from disnake.ext.commands import Context, group
 
-from bio_jardas.cogs.base import BaseCog
+from bio_jardas.cogs import BaseCog
 from bio_jardas.dependency_injection import cog_inject
-from bio_jardas.services.message import MessageService
+from bio_jardas.domains.message.services import MessageService
 
 logger = structlog.stdlib.get_logger()
 

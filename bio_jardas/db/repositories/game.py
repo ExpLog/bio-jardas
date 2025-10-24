@@ -1,7 +1,7 @@
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import aliased
 
-from bio_jardas.db.game import Score
+from bio_jardas.db.models.game import Score
 from bio_jardas.db.repositories.base import CRUDRepository
 
 

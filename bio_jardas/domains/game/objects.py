@@ -1,14 +1,8 @@
 from dataclasses import dataclass
-from enum import StrEnum
 
 from bio_jardas.db import Score
+from bio_jardas.domains.game.enums import GameName
 from bio_jardas.utils import INFLECT, mention_by_snowflake_id, snake_case_to_title
-
-
-class GameName(StrEnum):
-    RUSSIAN_ROULETTE = "russian_roulette"
-    HARDCORE_ROULETTE = "hardcore_roulette"
-    GLOCK_ROULETTE = "glock_roulette"
 
 
 @dataclass(frozen=True)

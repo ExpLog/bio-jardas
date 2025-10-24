@@ -12,8 +12,8 @@ from bio_jardas.db.repositories.message import (
     MessageGroupRepository,
     MessageRepository,
 )
-from bio_jardas.domain_objects.message import MessageGroupProbabilities
-from bio_jardas.dtos.message import UpsertMessageGroupChoice
+from bio_jardas.domains.message.dtos import UpsertMessageGroupChoice
+from bio_jardas.domains.message.objects import MessageGroupProbabilities
 from bio_jardas.exceptions import JardasError
 from bio_jardas.utils import first
 

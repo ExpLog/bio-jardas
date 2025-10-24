@@ -13,18 +13,26 @@ from bio_jardas.db.repositories.message import (
     MessageGroupRepository,
     MessageRepository,
 )
-from bio_jardas.services.config import ConfigService
-from bio_jardas.services.game import GameService
-from bio_jardas.services.message import MessageService
+from bio_jardas.domains.config.services import ConfigService
+from bio_jardas.domains.game.services import GameService
+from bio_jardas.domains.message.services import MessageService
 
 
 class BotProvider(Provider):
     @provide(scope=Scope.APP)
     async def bot(self) -> BioJardas:
-        from bio_jardas.cogs import ALL_COGS  # noqa: PLC0415
+        # ruff: noqa: PLC0415
+        from bio_jardas.domains.config.cogs import ConfigCog
+        from bio_jardas.domains.game.cogs import GameCog
+        from bio_jardas.domains.message.cogs.hug import HugCog
+        from bio_jardas.domains.message.cogs.reply import ReplyCog
+        from bio_jardas.domains.message.cogs.roast import RoastCog
+        from bio_jardas.domains.message.cogs.vocabulary import VocabularyCog
+
+        all_cogs = [ConfigCog, GameCog, HugCog, ReplyCog, RoastCog, VocabularyCog]
 
         bot = BioJardas.build()
-        for cog in ALL_COGS:
+        for cog in all_cogs:
             bot.add_cog(cog(bot))
         return bot
 

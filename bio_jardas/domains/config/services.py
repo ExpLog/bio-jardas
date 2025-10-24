@@ -3,8 +3,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
-from bio_jardas.db.config import Config
-from bio_jardas.domain_objects.config import ReplyIntensityConfig, ReplyIntensityEnum
+from bio_jardas.db.models.config import Config
+from bio_jardas.domains.config.objects import ReplyIntensityConfig, ReplyIntensityEnum
 
 logger = structlog.stdlib.get_logger()
 

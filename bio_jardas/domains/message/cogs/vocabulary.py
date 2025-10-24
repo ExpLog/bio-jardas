@@ -1,11 +1,11 @@
 from dishka import FromDishka
 from disnake.ext.commands import Context, check, command
 
-from bio_jardas.cogs.base import BaseCog
-from bio_jardas.cogs.reply import logger
+from bio_jardas.cogs import BaseCog
 from bio_jardas.command_checks import is_bot_owner
 from bio_jardas.dependency_injection import cog_inject
-from bio_jardas.services.message import MessageService
+from bio_jardas.domains.message.cogs.reply import logger
+from bio_jardas.domains.message.services import MessageService
 from bio_jardas.shortcuts import author_id
 
 
