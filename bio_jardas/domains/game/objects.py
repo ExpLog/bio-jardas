@@ -22,3 +22,9 @@ class Leaderboard:
             score_line = f"{place}: {mention} - {score.highest}"
             lines.append(score_line)
         return "\n".join(lines)
+
+
+@dataclass(frozen=True)
+class GameResult:
+    description: str
+    score: Score

@@ -18,9 +18,10 @@ Discord bot for the Aveiro Discord community.
     * [x] intensity
   * [ ] help text for all reply commands
 * [ ] roulette
-  * [ ] russian roulette
-  * [ ] hardcore roulette
-  * [ ] scoreboard
+  * [x] russian roulette
+  * [x] glock roulette
+  * [x] hardcore roulette
+  * [x] scoreboard
   * [ ] self-ban/shadow
 * [ ] good morning
 * [ ] fortune-teller

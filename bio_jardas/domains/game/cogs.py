@@ -5,26 +5,41 @@ from disnake.ext.commands import Context, command
 from bio_jardas.cogs import BaseCog
 from bio_jardas.dependency_injection import cog_inject
 from bio_jardas.domains.game.enums import GameName
+from bio_jardas.domains.game.games.base import Game
+from bio_jardas.domains.game.games.roulette import (
+    GlockRoulette,
+    HardcoreRoulette,
+    RussianRoulette,
+)
 from bio_jardas.domains.game.services import GameService
-from bio_jardas.shortcuts import author_id
 
 logger = structlog.stdlib.get_logger()
 
 
 class GameCog(BaseCog):
-    @command(name="win")
+    @command(name=GameName.RUSSIAN_ROULETTE)
     @cog_inject
-    async def win_game(
-        self, context: Context, name: str, *, game_service: FromDishka[GameService]
+    async def russian_roulette(
+        self, context: Context, *, game_service: FromDishka[GameService]
     ) -> None:
-        score = await game_service.increase_score_by(author_id(context), name)
-        await logger.ainfo(
-            "Score updated",
-            score_name=score.name,
-            current_score=score.current,
-            high_score=score.highest,
-        )
-        await context.reply("You won!")
+        game = RussianRoulette(game_service)
+        await _play_game(game, context)
+
+    @command(name=GameName.HARDCORE_ROULETTE)
+    @cog_inject
+    async def hardcore_roulette(
+        self, context: Context, *, game_service: FromDishka[GameService]
+    ) -> None:
+        game = HardcoreRoulette(game_service)
+        await _play_game(game, context)
+
+    @command(name=GameName.GLOCK_ROULETTE)
+    @cog_inject
+    async def glock_roulette(
+        self, context: Context, *, game_service: FromDishka[GameService]
+    ) -> None:
+        game = GlockRoulette(game_service)
+        await _play_game(game, context)
 
     @command(name="highscores")
     @cog_inject
@@ -42,3 +57,14 @@ class GameCog(BaseCog):
         message = "\n\n".join(leaderboard_displays)
         await logger.ainfo("Leaderboards displayed")
         await context.send(message)
+
+
+async def _play_game(game: Game, context: Context) -> None:
+    result = await game.play(context)
+    await logger.ainfo(
+        "Game played",
+        result=result.description,
+        current_score=result.score.current,
+        high_score=result.score.highest,
+        game=GameName.RUSSIAN_ROULETTE,
+    )
