@@ -7,12 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bio_jardas.bot import BioJardas
 from bio_jardas.db.base import transaction
+from bio_jardas.db.repositories.game import ScoreRepository
 from bio_jardas.db.repositories.message import (
     MessageGroupChoiceRepository,
     MessageGroupRepository,
     MessageRepository,
 )
 from bio_jardas.services.config import ConfigService
+from bio_jardas.services.game import GameService
 from bio_jardas.services.message import MessageService
 
 
@@ -53,6 +55,10 @@ class RepositoryProvider(Provider):
     ) -> MessageGroupChoiceRepository:
         return MessageGroupChoiceRepository(session)
 
+    @provide()
+    async def score_repository(self, session: AsyncSession) -> ScoreRepository:
+        return ScoreRepository(session)
+
 
 class ServiceProvider(Provider):
     scope = Scope.REQUEST
@@ -60,16 +66,21 @@ class ServiceProvider(Provider):
     @provide()
     async def message_service(
         self,
-        bot: BioJardas,
         message_repo: MessageRepository,
         group_repo: MessageGroupRepository,
         choice_repo: MessageGroupChoiceRepository,
     ) -> MessageService:
-        return MessageService(bot, message_repo, group_repo, choice_repo)
+        return MessageService(message_repo, group_repo, choice_repo)
 
     @provide()
     async def config_service(self, session: AsyncSession) -> ConfigService:
         return ConfigService(session)
+
+    @provide()
+    async def game_service(
+        self, bot: BioJardas, score_repo: ScoreRepository
+    ) -> GameService:
+        return GameService(bot, score_repo)
 
 
 def _get_di_cog_container(*args, **_kwargs) -> AsyncContainer:

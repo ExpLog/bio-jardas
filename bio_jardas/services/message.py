@@ -2,7 +2,6 @@ import random
 from collections.abc import Sequence
 
 import structlog
-from disnake.ext.commands import Bot
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from structlog.contextvars import bind_contextvars
@@ -34,12 +33,10 @@ DEFAULT_CHANNEL_MESSAGE_GROUPS = {
 class MessageService:
     def __init__(
         self,
-        bot: Bot,
         msg_repo: MessageRepository,
         group_repo: MessageGroupRepository,
         choice_repo: MessageGroupChoiceRepository,
     ):
-        self.bot = bot
         self.msg_repo = msg_repo
         self.group_repo = group_repo
         self.choice_repo = choice_repo

@@ -25,9 +25,20 @@ class Base(DeclarativeBase):
     id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
 
 
-class AuditBase(Base):
-    __abstract__ = True
+class TimestampMixin:
+    created_at: Mapped[datetime] = mapped_column(
+        sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        sa.DateTime(timezone=True),
+        nullable=False,
+        server_default=sa.func.now(),
+        onupdate=sa.func.now(),
+    )
 
+
+class AuditBase(Base, TimestampMixin):
+    __abstract__ = True
     created_by: Mapped[int] = mapped_column(
         sa.BigInteger,
         nullable=False,
@@ -37,15 +48,6 @@ class AuditBase(Base):
         sa.BigInteger,
         nullable=False,
         comment="Snowflake id of the user. 0 for legacy.",
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True),
-        nullable=False,
-        server_default=sa.func.now(),
-        onupdate=sa.func.now(),
     )
 
 
