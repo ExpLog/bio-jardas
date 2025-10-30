@@ -1,6 +1,6 @@
-from bio_jardas.db.models.config import Config
 from bio_jardas.db.models.game import Score
 from bio_jardas.db.models.message import Message, MessageGroup, MessageGroupChoice
+from bio_jardas.db.models.public import Config, TimeGate
 
 from .base import Session, engine
 
@@ -11,5 +11,6 @@ __all__ = [
     "MessageGroupChoice",
     "Score",
     "Session",
+    "TimeGate",
     "engine",
 ]
