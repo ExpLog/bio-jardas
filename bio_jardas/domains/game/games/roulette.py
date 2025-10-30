@@ -5,6 +5,7 @@ from datetime import timedelta
 from disnake import Forbidden
 from disnake.ext.commands import Context
 
+import bio_jardas.exceptions as exc
 from bio_jardas.domains.game.enums import GameName, RouletteResult
 from bio_jardas.domains.game.games.base import Game
 from bio_jardas.domains.game.objects import GameResult
@@ -29,9 +30,17 @@ class RouletteGame(Game, ABC):
             )
             await context.channel.send(f"{player.mention} has died")
         except Forbidden as e:
-            await context.channel.send(f"Error timing out {player.mention}: {e}")
+            match e.code:
+                case exc.MISSING_PERMISSION_CODE:
+                    await context.channel.send(
+                        f"{player.mention} was shot, but is too strong to be killed!"
+                    )
+                case _:
+                    await context.channel.send(
+                        f"Error timing out {player.mention}: {e}"
+                    )
 
-        return GameResult(RouletteResult.ALIVE, score)
+        return GameResult(RouletteResult.DEAD, score)
 
     @abstractmethod
     async def _is_safe(self):
@@ -78,7 +87,7 @@ class HardcoreRoulette(RouletteGame):
         return bullet > 1 / 3
 
     def _timeout_timedelta(self) -> timedelta:
-        return random.choices(self.timeout_durations, self.timeout_probabilities)
+        return random.choices(self.timeout_durations, self.timeout_probabilities)[0]
 
 
 class GlockRoulette(RouletteGame):
