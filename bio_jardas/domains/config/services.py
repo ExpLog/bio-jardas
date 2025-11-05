@@ -24,6 +24,7 @@ class ConfigService:
         self.session = session
 
     async def get_intensity(self) -> ReplyIntensityConfig:
+        # TODO: add some caching
         query = select(Config).where(Config.name == "intensity")
         config = await self.session.scalar(query)
         if not config:

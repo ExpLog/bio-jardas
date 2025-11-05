@@ -1,8 +1,7 @@
-from datetime import datetime
-
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
+from whenever import ZonedDateTime
 
 from bio_jardas.db.base import AuditBase, Base, TimestampMixin
 
@@ -21,6 +20,4 @@ class TimeGate(Base, TimestampMixin):
 
     user_snowflake_id: Mapped[int] = mapped_column(sa.BigInteger, nullable=False)
     name: Mapped[str] = mapped_column(sa.String(100), nullable=False)
-    resets_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True), nullable=False
-    )
+    resets_at: Mapped[ZonedDateTime] = mapped_column(nullable=False)

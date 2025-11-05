@@ -1,6 +1,5 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import datetime
 from functools import wraps
 from typing import Any
 
@@ -11,26 +10,30 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry
+from whenever import ZonedDateTime
 
+from bio_jardas.db.types import ZonedDateTimeType
 from bio_jardas.settings import SETTINGS
 
 metadata = sa.MetaData()
+mapper_registry = registry()
+mapper_registry.type_annotation_map[ZonedDateTime] = ZonedDateTimeType()
 
 
 class Base(DeclarativeBase):
     __abstract__ = True
     metadata = metadata
+    registry = mapper_registry
 
     id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
 
 
 class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+    created_at: Mapped[ZonedDateTime] = mapped_column(
+        nullable=False, server_default=sa.func.now()
     )
-    updated_at: Mapped[datetime] = mapped_column(
-        sa.DateTime(timezone=True),
+    updated_at: Mapped[ZonedDateTime] = mapped_column(
         nullable=False,
         server_default=sa.func.now(),
         onupdate=sa.func.now(),
