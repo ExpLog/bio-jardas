@@ -6,14 +6,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from structlog.contextvars import bind_contextvars
 
-from bio_jardas.db import Message, MessageGroup, MessageGroupChoice
-from bio_jardas.db.repositories.message import (
+from bio_jardas.domains.message.dtos import UpsertMessageGroupChoice
+from bio_jardas.domains.message.models import Message, MessageGroup, MessageGroupChoice
+from bio_jardas.domains.message.objects import MessageGroupProbabilities
+from bio_jardas.domains.message.repositories import (
     MessageGroupChoiceRepository,
     MessageGroupRepository,
     MessageRepository,
 )
-from bio_jardas.domains.message.dtos import UpsertMessageGroupChoice
-from bio_jardas.domains.message.objects import MessageGroupProbabilities
 from bio_jardas.exceptions import JardasError
 from bio_jardas.utils import first
 

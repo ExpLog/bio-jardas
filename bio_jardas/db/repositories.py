@@ -1,17 +1,11 @@
 from collections.abc import Sequence
 
-from sqlalchemy import (
-    ColumnElement,
-    ColumnExpressionArgument,
-    delete,
-    exists,
-    select,
-)
+from sqlalchemy import ColumnElement, ColumnExpressionArgument, delete, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
 
-from bio_jardas.db.base import Base
 from bio_jardas.db.exceptions import EntityNotFoundError
+from bio_jardas.db.models import Base
 
 
 class Repository:

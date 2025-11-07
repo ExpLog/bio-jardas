@@ -2,10 +2,10 @@ from collections import defaultdict
 
 from disnake.ext.commands import Bot
 
-from bio_jardas.db.models.game import Score
-from bio_jardas.db.repositories.game import ScoreRepository
 from bio_jardas.domains.game.enums import GameName
+from bio_jardas.domains.game.models import Score
 from bio_jardas.domains.game.objects import Leaderboard
+from bio_jardas.domains.game.repositories import ScoreRepository
 
 
 class GameService:

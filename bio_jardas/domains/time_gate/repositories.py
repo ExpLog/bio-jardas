@@ -1,6 +1,6 @@
-from bio_jardas.db import TimeGate
-from bio_jardas.db.repositories.base import CRUDRepository
+from bio_jardas.db.repositories import CRUDRepository
 from bio_jardas.domains.time_gate.enums import TimeGateNameEnum
+from bio_jardas.domains.time_gate.models import TimeGate
 
 
 class TimeGateRepository(CRUDRepository[TimeGate]):

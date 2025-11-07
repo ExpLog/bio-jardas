@@ -13,7 +13,9 @@ from typing import Literal
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from bio_jardas.db.base import AuditBase
+from bio_jardas.db.models import AuditBase
+
+__all__ = ["Message", "MessageGroup", "MessageGroupChoice"]
 
 
 class MessageGroup(AuditBase):

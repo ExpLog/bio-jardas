@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from bio_jardas.db import Score
 from bio_jardas.domains.game.enums import GameName
+from bio_jardas.domains.game.models import Score
 from bio_jardas.utils import INFLECT, mention_by_snowflake_id, snake_case_to_title
 
 

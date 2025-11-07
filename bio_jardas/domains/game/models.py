@@ -1,7 +1,9 @@
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
-from bio_jardas.db.base import Base, TimestampMixin
+from bio_jardas.db.models import Base, TimestampMixin
+
+__all__ = ["Score"]
 
 
 class Score(Base, TimestampMixin):

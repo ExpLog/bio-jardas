@@ -1,6 +1,6 @@
 from typing import Any
 
-from bio_jardas.db.base import Base
+from bio_jardas.db.models import Base
 from bio_jardas.exceptions import JardasError
 
 

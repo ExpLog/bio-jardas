@@ -11,10 +11,10 @@ from disnake.ext.commands import (
 
 from bio_jardas import emojis
 from bio_jardas.cogs import BaseCog
-from bio_jardas.db.repositories.message import MessageGroupRepository
 from bio_jardas.dependency_injection import cog_inject
 from bio_jardas.domains.config.objects import ReplyIntensityEnum
 from bio_jardas.domains.config.services import ConfigService
+from bio_jardas.domains.message.repositories import MessageGroupRepository
 from bio_jardas.observability import bind_exception_info
 from bio_jardas.shortcuts import author_id
 from bio_jardas.utils import probability_as_percentage, standard_embed

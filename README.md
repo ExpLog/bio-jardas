@@ -43,7 +43,7 @@ Discord bot for the Aveiro Discord community.
 * [ ] add simple permission RBAC system with hardcoded roles
   * we'll rely on configured roles in the discord server
 * [x] dependency injection
-* [ ] refactor models and repositories into domains
+* [x] refactor models and repositories into domains
 
 ### Take a look at
 * [ ] gradio and/or streamlit for external apps

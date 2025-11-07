@@ -6,7 +6,7 @@ from whenever import Time, ZonedDateTime
 from bio_jardas.domains.time_gate.enums import TimeGateNameEnum
 
 if TYPE_CHECKING:
-    from bio_jardas.db import TimeGate
+    from bio_jardas.domains.time_gate.models import TimeGate
 
 
 class TimeGateStrategy(ABC):

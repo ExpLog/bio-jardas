@@ -9,8 +9,8 @@ from sqlalchemy import exists, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from structlog.stdlib import get_logger
 
-from bio_jardas.db import Message, MessageGroup
-from bio_jardas.db.base import Session
+from bio_jardas.db.engine import Session
+from bio_jardas.domains.message.models import Message, MessageGroup
 
 logger = get_logger()
 app = App(name="load_messages")

@@ -1,8 +1,8 @@
 from sqlalchemy import func, select
 
-from bio_jardas.db import Message, MessageGroup, MessageGroupChoice
 from bio_jardas.db.exceptions import EntityNotFoundError
-from bio_jardas.db.repositories.base import CRUDRepository
+from bio_jardas.db.repositories import CRUDRepository
+from bio_jardas.domains.message.models import Message, MessageGroup, MessageGroupChoice
 
 
 class MessageRepository(CRUDRepository[Message]):

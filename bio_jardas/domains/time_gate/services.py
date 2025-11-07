@@ -1,8 +1,8 @@
 from disnake.ext.commands import Bot
 
-from bio_jardas.db import TimeGate
-from bio_jardas.db.repositories.public import TimeGateRepository
 from bio_jardas.domains.time_gate.enums import TimeGateNameEnum
+from bio_jardas.domains.time_gate.models import TimeGate
+from bio_jardas.domains.time_gate.repositories import TimeGateRepository
 
 
 class TimeGateService:

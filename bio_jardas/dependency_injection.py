@@ -6,17 +6,17 @@ from dishka.integrations.base import wrap_injection
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bio_jardas.bot import BioJardas
-from bio_jardas.db.base import transaction
-from bio_jardas.db.repositories.game import ScoreRepository
-from bio_jardas.db.repositories.message import (
+from bio_jardas.db.engine import transaction
+from bio_jardas.domains.config.services import ConfigService
+from bio_jardas.domains.game.repositories import ScoreRepository
+from bio_jardas.domains.game.services import GameService
+from bio_jardas.domains.message.repositories import (
     MessageGroupChoiceRepository,
     MessageGroupRepository,
     MessageRepository,
 )
-from bio_jardas.db.repositories.public import TimeGateRepository
-from bio_jardas.domains.config.services import ConfigService
-from bio_jardas.domains.game.services import GameService
 from bio_jardas.domains.message.services import MessageService
+from bio_jardas.domains.time_gate.repositories import TimeGateRepository
 from bio_jardas.domains.time_gate.services import TimeGateService
 
 

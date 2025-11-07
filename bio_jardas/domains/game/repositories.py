@@ -1,8 +1,8 @@
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import aliased
 
-from bio_jardas.db.models.game import Score
-from bio_jardas.db.repositories.base import CRUDRepository
+from bio_jardas.db.repositories import CRUDRepository
+from bio_jardas.domains.game.models import Score
 
 
 class ScoreRepository(CRUDRepository[Score]):

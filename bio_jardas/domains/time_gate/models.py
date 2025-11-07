@@ -1,23 +1,16 @@
 from contextlib import contextmanager
 
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from whenever import ZonedDateTime
 
-from bio_jardas.db.base import AuditBase, Base, TimestampMixin
+from bio_jardas.db.models import Base, TimestampMixin
 from bio_jardas.db.types import EnumString
 from bio_jardas.domains.time_gate.enums import TimeGateNameEnum
 from bio_jardas.domains.time_gate.exceptions import TimeGatedError
 from bio_jardas.domains.time_gate.strategies import TimeGateStrategy
 
-
-# TODO: change name of table/class to bot_config
-class Config(AuditBase):
-    __tablename__ = "config"
-
-    name: Mapped[str] = mapped_column(nullable=False, index=True)
-    data: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
+__all__ = ["TimeGate"]
 
 
 class TimeGate(Base, TimestampMixin):

@@ -5,7 +5,11 @@ from alembic import context
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from bio_jardas.db.base import metadata
+from bio_jardas.db.models import metadata
+from bio_jardas.domains.config.models import *  # noqa: F403
+from bio_jardas.domains.game.models import *  # noqa: F403
+from bio_jardas.domains.message.models import *  # noqa: F403
+from bio_jardas.domains.time_gate.models import *  # noqa: F403
 from bio_jardas.settings import SETTINGS
 
 # this is the Alembic Config object, which provides
