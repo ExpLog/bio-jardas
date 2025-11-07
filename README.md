@@ -22,7 +22,8 @@ Discord bot for the Aveiro Discord community.
   * [x] glock roulette
   * [x] hardcore roulette
   * [x] scoreboard
-  * [ ] self-ban/shadow
+  * [x] self-ban/shadow
+    * [ ] remove ban after X hours has passed (requires scheduling)
 * [ ] good morning
 * [x] fortune-teller
 * [ ] event reminder

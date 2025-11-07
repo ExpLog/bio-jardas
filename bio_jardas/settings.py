@@ -39,9 +39,17 @@ class PostgresConfig(BaseModel):
         )
 
 
+class GameConfig(BaseModel):
+    shadow_ban_role: str
+    member_role: str
+
+    model_config = ConfigDict(frozen=True, str_strip_whitespace=True)
+
+
 class Settings(BaseSettings):
     discord: DiscordConfig
     postgres: PostgresConfig
+    game: GameConfig
     log_level: Annotated[str, StringConstraints(to_upper=True)]
     log_force_console_renderer: bool = False
 

@@ -11,6 +11,7 @@ from bio_jardas.domains.game.games.roulette import (
     HardcoreRoulette,
     RussianRoulette,
 )
+from bio_jardas.domains.game.games.shadowban import ShadowBanGame
 from bio_jardas.domains.game.services import GameService
 
 logger = structlog.stdlib.get_logger()
@@ -39,6 +40,14 @@ class GameCog(BaseCog):
         self, context: Context, *, game_service: FromDishka[GameService]
     ) -> None:
         game = GlockRoulette(game_service)
+        await _play_game(game, context)
+
+    @command(name="shadow")
+    @cog_inject
+    async def shadowban(
+        self, context: Context, *, hours: int, game_service: FromDishka[GameService]
+    ) -> None:
+        game = ShadowBanGame(hours, game_service)
         await _play_game(game, context)
 
     @command(name="highscores")
