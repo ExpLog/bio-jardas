@@ -24,7 +24,7 @@ Discord bot for the Aveiro Discord community.
   * [x] scoreboard
   * [ ] self-ban/shadow
 * [ ] good morning
-* [ ] fortune-teller
+* [x] fortune-teller
 * [ ] event reminder
 * [x] huggies
 * [x] roast
@@ -43,6 +43,7 @@ Discord bot for the Aveiro Discord community.
 * [ ] add simple permission RBAC system with hardcoded roles
   * we'll rely on configured roles in the discord server
 * [x] dependency injection
+* [ ] refactor models and repositories into domains
 
 ### Take a look at
 * [ ] gradio and/or streamlit for external apps

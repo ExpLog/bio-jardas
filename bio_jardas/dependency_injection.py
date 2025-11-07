@@ -13,9 +13,11 @@ from bio_jardas.db.repositories.message import (
     MessageGroupRepository,
     MessageRepository,
 )
+from bio_jardas.db.repositories.public import TimeGateRepository
 from bio_jardas.domains.config.services import ConfigService
 from bio_jardas.domains.game.services import GameService
 from bio_jardas.domains.message.services import MessageService
+from bio_jardas.domains.time_gate.services import TimeGateService
 
 
 class BotProvider(Provider):
@@ -24,12 +26,21 @@ class BotProvider(Provider):
         # ruff: noqa: PLC0415
         from bio_jardas.domains.config.cogs import ConfigCog
         from bio_jardas.domains.game.cogs import GameCog
+        from bio_jardas.domains.message.cogs.fortune_teller import FortuneTellerCog
         from bio_jardas.domains.message.cogs.hug import HugCog
         from bio_jardas.domains.message.cogs.reply import ReplyCog
         from bio_jardas.domains.message.cogs.roast import RoastCog
         from bio_jardas.domains.message.cogs.vocabulary import VocabularyCog
 
-        all_cogs = [ConfigCog, GameCog, HugCog, ReplyCog, RoastCog, VocabularyCog]
+        all_cogs = [
+            ConfigCog,
+            FortuneTellerCog,
+            GameCog,
+            HugCog,
+            ReplyCog,
+            RoastCog,
+            VocabularyCog,
+        ]
 
         bot = BioJardas.build()
         for cog in all_cogs:
@@ -67,6 +78,10 @@ class RepositoryProvider(Provider):
     async def score_repository(self, session: AsyncSession) -> ScoreRepository:
         return ScoreRepository(session)
 
+    @provide()
+    async def time_gate_repository(self, session: AsyncSession) -> TimeGateRepository:
+        return TimeGateRepository(session)
+
 
 class ServiceProvider(Provider):
     scope = Scope.REQUEST
@@ -89,6 +104,12 @@ class ServiceProvider(Provider):
         self, bot: BioJardas, score_repo: ScoreRepository
     ) -> GameService:
         return GameService(bot, score_repo)
+
+    @provide()
+    async def time_gate_service(
+        self, bot: BioJardas, gate_repo: TimeGateRepository
+    ) -> TimeGateService:
+        return TimeGateService(bot, gate_repo)
 
 
 def _get_di_cog_container(*args, **_kwargs) -> AsyncContainer:

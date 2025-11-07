@@ -40,6 +40,9 @@ logger = structlog.stdlib.get_logger()
 
 # TODO: differentiate between internal errors and user errors in logs
 # TODO: actually obey the disabled columns
+# TODO: replies + all configurations should only be allowed in configured channels
+#  actually, we need to decide if management will be done on the guild or bot or both
+#  specially since user-specific replies can happen in any channel at the moment
 class ReplyCog(BaseCog):
     @Cog.listener("on_message")
     @skip_bots_and_commands
