@@ -1,7 +1,9 @@
 import structlog
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dishka import FromDishka
 from disnake import AllowedMentions
 from disnake.ext.commands import Context, command
+from structlog.contextvars import bind_contextvars
 
 from bio_jardas.cogs import BaseCog
 from bio_jardas.dependency_injection import cog_inject
@@ -46,10 +48,16 @@ class GameCog(BaseCog):
     @command(name="shadow")
     @cog_inject
     async def shadowban(
-        self, context: Context, *, hours: int, game_service: FromDishka[GameService]
+        self,
+        context: Context,
+        *,
+        hours: int,
+        game_service: FromDishka[GameService],
+        scheduler: FromDishka[AsyncIOScheduler],
     ) -> None:
-        game = ShadowBanGame(hours, game_service)
-        await _play_game(game, context)
+        game = ShadowBanGame(hours, game_service, scheduler)
+        bind_contextvars(game=game.name)
+        await game.play(context)
 
     @command(name="highscores")
     @cog_inject

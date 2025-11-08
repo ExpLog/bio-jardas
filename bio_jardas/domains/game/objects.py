@@ -25,6 +25,6 @@ class Leaderboard:
 
 
 @dataclass(frozen=True)
-class GameResult:
+class ScoreResult:
     description: str
     score: Score

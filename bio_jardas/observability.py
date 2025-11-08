@@ -122,7 +122,7 @@ def _instrument_structlog_logs(processors: Sequence[Processor], /) -> None:
     )
 
 
-async def bind_command_context_to_logs(context: Context):
+async def bind_command_context_to_logs(context: Context) -> None:
     clear_contextvars()
     bind_contextvars(
         author_id=author_id(context),
@@ -135,7 +135,7 @@ async def bind_command_context_to_logs(context: Context):
     )
 
 
-def bind_listener_context_to_logs(context: Context):
+def bind_listener_context_to_logs(context: Context) -> None:
     clear_contextvars()
     bind_contextvars(
         author_id=author_id(context),
@@ -147,13 +147,18 @@ def bind_listener_context_to_logs(context: Context):
     )
 
 
-def bind_error_cause(cause: str):
+def restore_context_to_logs(structlog_context: dict) -> None:
+    clear_contextvars()
+    bind_contextvars(**structlog_context)
+
+
+def bind_error_cause(cause: str) -> None:
     bind_contextvars(cause=cause)
 
 
-def bind_exception_info(exception: Exception):
+def bind_exception_info(exception: Exception) -> None:
     bind_contextvars(exc_info=exception)
 
 
-def bind_attempted_command(context: Context):
+def bind_attempted_command(context: Context) -> None:
     bind_contextvars(attempted_command=context.message.content)

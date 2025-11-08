@@ -8,19 +8,19 @@ from disnake.ext.commands import Context
 import bio_jardas.exceptions as exc
 from bio_jardas.domains.game.enums import GameName, RouletteResult
 from bio_jardas.domains.game.games.base import Game
-from bio_jardas.domains.game.objects import GameResult
+from bio_jardas.domains.game.objects import ScoreResult
 
 
-class RouletteGame(Game, ABC):
+class RouletteGame(Game[ScoreResult], ABC):
     title: str
 
-    async def play(self, context: Context) -> GameResult:
+    async def play(self, context: Context) -> ScoreResult:
         player = context.author
 
         if self._is_safe():
             await context.channel.send(f"{player.mention} is safe!")
             score = await self.game_service.increase_score_by(player.id, self.name)
-            return GameResult(RouletteResult.ALIVE, score)
+            return ScoreResult(RouletteResult.ALIVE, score)
 
         score = await self.game_service.reset_current_score(player.id, self.name)
         try:
@@ -40,7 +40,7 @@ class RouletteGame(Game, ABC):
                         f"Error timing out {player.mention}: {e}"
                     )
 
-        return GameResult(RouletteResult.DEAD, score)
+        return ScoreResult(RouletteResult.DEAD, score)
 
     @abstractmethod
     async def _is_safe(self):
