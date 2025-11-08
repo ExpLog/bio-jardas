@@ -35,7 +35,6 @@ class ShadowBanGame(Game[None]):
         shadow_role = self._find_role(SETTINGS.game.shadow_ban_role, guild_roles)
         member_role = self._find_role(SETTINGS.game.member_role, guild_roles)
 
-        await context.channel.send(f"{player.mention} bye bye")
         try:
             await player.timeout(duration=self.hours * 60 * 60, reason="Shadow Ban")
         except Forbidden as e:
@@ -48,10 +47,13 @@ class ShadowBanGame(Game[None]):
                     await context.channel.send(
                         f"Error timing out {player.mention}: {e}"
                     )
-            await logger.ainfo("Role prevented user from being shadow banned")
+            await logger.awarning(
+                "Role prevented user from being shadow banned", error=str(e)
+            )
             return
 
         await logger.ainfo("Initiating shadow ban")
+        await context.channel.send(f"{player.mention} bye bye")
         await player.add_roles(shadow_role)
         await player.remove_roles(member_role)
         await player.send("You are now shadow banned. Get to work weakling!")

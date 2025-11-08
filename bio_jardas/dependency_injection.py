@@ -55,6 +55,9 @@ class BotProvider(Provider):
 class SchedulerProvider(Provider):
     @provide(scope=Scope.APP)
     async def scheduler(self) -> AsyncIOScheduler:
+        # TODO: use the engine and metadata we already have
+        #  requires APScheduler v4, which hasn't been released yet
+        #  https://github.com/agronholm/apscheduler/issues/465
         job_stores = {"default": SQLAlchemyJobStore(url=SETTINGS.postgres.sync_url)}
         job_defaults = {"coalesce": True, "max_instances": 1}
         return AsyncIOScheduler(
