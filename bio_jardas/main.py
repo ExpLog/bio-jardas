@@ -21,13 +21,17 @@ async def main() -> None:
     logger = structlog.stdlib.get_logger()
     logger.info("Starting BioJardas")
 
+    jardas = await di_container.get(BioJardas)
+    jardas.register_di_container(di_container)
     try:
-        jardas = await di_container.get(BioJardas)
-        jardas.register_di_container(di_container)
         await jardas.start(SETTINGS.discord.token)
     finally:
+        await jardas.close()
         await di_container.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass

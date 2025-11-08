@@ -29,7 +29,13 @@ class BioJardas(Bot):
         await logger.ainfo("BioJardas logged in as %s", self.user)
         await logger.ainfo("Starting scheduler")
         self.scheduler.start()
-        await logger.ainfo("Scheduler started")
+
+    async def close(self) -> None:
+        await logger.ainfo("Shutting down scheduler")
+        if self.scheduler.running:
+            self.scheduler.shutdown()
+        await super().close()
+        await logger.ainfo("BioJardas has shutdown")
 
     @classmethod
     def build(cls, scheduler: AsyncIOScheduler) -> "BioJardas":

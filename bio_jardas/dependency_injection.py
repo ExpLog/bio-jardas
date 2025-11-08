@@ -35,7 +35,7 @@ class SchedulerProvider(Provider):
         return AsyncIOScheduler(
             jobstores=job_stores,
             job_defaults=job_defaults,
-            timezone=pytz.timezone("Europe/Lisbon"),
+            timezone=pytz.timezone(SETTINGS.timezone),
         )
 
 

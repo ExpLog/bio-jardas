@@ -1,6 +1,7 @@
 from typing import Annotated
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
 
@@ -61,6 +62,9 @@ class Settings(BaseSettings):
     discord: DiscordConfig
     postgres: PostgresConfig
     game: GameConfig
+
+    timezone: str = "Europe/Lisbon"
+
     log_level: Annotated[str, StringConstraints(to_upper=True)]
     log_force_console_renderer: bool = False
 
@@ -74,6 +78,15 @@ class Settings(BaseSettings):
         env_nested_delimiter="_",
         env_nested_max_split=1,
     )
+
+    @field_validator("timezone")
+    @classmethod
+    def validate_timezone(cls, v: str):
+        try:
+            ZoneInfo(v)
+        except ZoneInfoNotFoundError:
+            raise ValueError(f"Unknown timezone: {v}")
+        return v
 
 
 SETTINGS = Settings()
