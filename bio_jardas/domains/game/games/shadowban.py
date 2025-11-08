@@ -72,6 +72,7 @@ class ShadowBanGame(Game[None]):
                 member_role.id,
                 structlog.get_context(logger),
             ),
+            misfire_grace_time=None,
         )
         return
 
