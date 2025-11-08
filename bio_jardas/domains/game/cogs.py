@@ -1,5 +1,6 @@
 import structlog
 from dishka import FromDishka
+from disnake import AllowedMentions
 from disnake.ext.commands import Context, command
 
 from bio_jardas.cogs import BaseCog
@@ -65,7 +66,7 @@ class GameCog(BaseCog):
         leaderboard_displays = [lb.build_display() for lb in leaderboards]
         message = "\n\n".join(leaderboard_displays)
         await logger.ainfo("Leaderboards displayed")
-        await context.send(message)
+        await context.send(message, allowed_mentions=AllowedMentions.none())
 
 
 async def _play_game(game: Game, context: Context) -> None:
