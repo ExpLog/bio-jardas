@@ -17,7 +17,7 @@ Discord bot for the Aveiro Discord community.
     * [x] user
     * [x] intensity
   * [ ] help text for all reply commands
-* [ ] roulette
+* [x] roulette
   * [x] russian roulette
   * [x] glock roulette
   * [x] hardcore roulette

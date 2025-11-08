@@ -8,13 +8,15 @@ from disnake.ext.commands import Context
 from whenever import ZonedDateTime
 
 import bio_jardas.exceptions as exc
+from bio_jardas.bot import BioJardas
+from bio_jardas.dependency_injection import di_container
 from bio_jardas.domains.game.games.base import Game
 from bio_jardas.domains.game.services import GameService
 from bio_jardas.observability import restore_context_to_logs
 from bio_jardas.settings import SETTINGS
 
 if TYPE_CHECKING:
-    from disnake import Member, Role, User
+    from disnake import Role
 
 logger = structlog.stdlib.get_logger()
 
@@ -63,7 +65,13 @@ class ShadowBanGame(Game[None]):
         self.scheduler.add_job(
             self._remove_shadow_ban,
             trigger=DateTrigger(run_date=unban_time.py_datetime()),
-            args=(player, shadow_role, member_role, structlog.get_context(logger)),
+            args=(
+                player.id,
+                context.guild.id,
+                shadow_role.id,
+                member_role.id,
+                structlog.get_context(logger),
+            ),
         )
         return
 
@@ -73,13 +81,26 @@ class ShadowBanGame(Game[None]):
 
     @staticmethod
     async def _remove_shadow_ban(
-        player: "User | Member",
-        shadow_role: "Role",
-        member_role: "Role",
+        player_snowflake_id: int,
+        guild_snowflake_id: int,
+        shadow_role_snowflake_id: int,
+        member_role_snowflake_id: int,
         logger_context: dict,
     ) -> None:
         restore_context_to_logs(logger_context)
+
+        jardas = await di_container.get(BioJardas)
+
         await logger.ainfo("Initiating shadow ban reversal")
+        try:
+            guild = jardas.get_guild(guild_snowflake_id)
+            player = guild.get_member(player_snowflake_id)
+            shadow_role = guild.get_role(shadow_role_snowflake_id)
+            member_role = guild.get_role(member_role_snowflake_id)
+        except Exception:  # noqa: BLE001
+            await logger.aexception("Failed to fetch data when removing shadow ban")
+            return
+
         await player.add_roles(member_role)
         await player.remove_roles(shadow_role)
         await player.send("Your punishment has ended weakling!")
