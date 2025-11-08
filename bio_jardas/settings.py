@@ -38,6 +38,17 @@ class PostgresConfig(BaseModel):
             database=self.database,
         )
 
+    @property
+    def sync_url(self) -> URL:
+        return URL.create(
+            drivername="postgresql+psycopg",
+            username=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+            database=self.database,
+        )
+
 
 class GameConfig(BaseModel):
     shadow_ban_role: str

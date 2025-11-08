@@ -9,9 +9,7 @@ from dishka.integrations.base import wrap_injection
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bio_jardas.bot import BioJardas
-from bio_jardas.db import engine
 from bio_jardas.db.engine import transaction
-from bio_jardas.db.models import metadata
 from bio_jardas.domains.config.services import ConfigService
 from bio_jardas.domains.game.repositories import ScoreRepository
 from bio_jardas.domains.game.services import GameService
@@ -23,6 +21,7 @@ from bio_jardas.domains.message.repositories import (
 from bio_jardas.domains.message.services import MessageService
 from bio_jardas.domains.time_gate.repositories import TimeGateRepository
 from bio_jardas.domains.time_gate.services import TimeGateService
+from bio_jardas.settings import SETTINGS
 
 
 class BotProvider(Provider):
@@ -56,7 +55,7 @@ class BotProvider(Provider):
 class SchedulerProvider(Provider):
     @provide(scope=Scope.APP)
     async def scheduler(self) -> AsyncIOScheduler:
-        job_stores = {"default": SQLAlchemyJobStore(engine=engine, metadata=metadata)}
+        job_stores = {"default": SQLAlchemyJobStore(url=SETTINGS.postgres.sync_url)}
         job_defaults = {"coalesce": True, "max_instances": 1}
         return AsyncIOScheduler(
             jobstores=job_stores,
