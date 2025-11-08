@@ -1,12 +1,17 @@
 from collections.abc import AsyncGenerator
 from typing import Any
 
+import pytz
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dishka import AsyncContainer, Provider, Scope, make_async_container, provide
 from dishka.integrations.base import wrap_injection
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bio_jardas.bot import BioJardas
+from bio_jardas.db import engine
 from bio_jardas.db.engine import transaction
+from bio_jardas.db.models import metadata
 from bio_jardas.domains.config.services import ConfigService
 from bio_jardas.domains.game.repositories import ScoreRepository
 from bio_jardas.domains.game.services import GameService
@@ -46,6 +51,18 @@ class BotProvider(Provider):
         for cog in all_cogs:
             bot.add_cog(cog(bot))
         return bot
+
+
+class SchedulerProvider(Provider):
+    @provide(scope=Scope.APP)
+    async def scheduler(self) -> AsyncIOScheduler:
+        job_stores = {"default": SQLAlchemyJobStore(engine=engine, metadata=metadata)}
+        job_defaults = {"coalesce": True, "max_instances": 1}
+        return AsyncIOScheduler(
+            jobstores=job_stores,
+            job_defaults=job_defaults,
+            timezone=pytz.timezone("Europe/Lisbon"),
+        )
 
 
 class AsyncSessionProvider(Provider):
@@ -127,7 +144,11 @@ def cog_inject(func):
 
 def build_di_container() -> AsyncContainer:
     return make_async_container(
-        AsyncSessionProvider(), RepositoryProvider(), ServiceProvider(), BotProvider()
+        AsyncSessionProvider(),
+        RepositoryProvider(),
+        ServiceProvider(),
+        BotProvider(),
+        SchedulerProvider(),
     )
 
 
