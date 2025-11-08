@@ -1,4 +1,5 @@
 import structlog
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dishka import AsyncContainer
 from disnake import Intents
 from disnake.ext.commands import (
@@ -19,19 +20,23 @@ logger = structlog.stdlib.get_logger()
 
 
 class BioJardas(Bot):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, scheduler: AsyncIOScheduler, *args, **kwargs):
+        self.scheduler = scheduler
         self.container: AsyncContainer | None = None
         super().__init__(*args, **kwargs)
 
     async def on_ready(self) -> None:
-        logger.info("BioJardas logged in as %s", self.user)
+        await logger.ainfo("BioJardas logged in as %s", self.user)
+        await logger.ainfo("Starting scheduler")
+        self.scheduler.start()
+        await logger.ainfo("Scheduler started")
 
     @classmethod
-    def build(cls) -> "BioJardas":
+    def build(cls, scheduler: AsyncIOScheduler) -> "BioJardas":
         intents = Intents.default()
         intents.message_content = True
         intents.members = True
-        instance = cls(command_prefix="$", intents=intents)
+        instance = cls(scheduler, command_prefix="$", intents=intents)
         instance.before_invoke(bind_command_context_to_logs)
         instance.before_message_command_invoke(bind_command_context_to_logs)
         instance.before_user_command_invoke(bind_command_context_to_logs)

@@ -24,9 +24,24 @@ from bio_jardas.domains.time_gate.services import TimeGateService
 from bio_jardas.settings import SETTINGS
 
 
+class SchedulerProvider(Provider):
+    @provide(scope=Scope.APP)
+    async def scheduler(self) -> AsyncIOScheduler:
+        # TODO: use the engine and metadata we already have
+        #  requires APScheduler v4, which hasn't been released yet
+        #  https://github.com/agronholm/apscheduler/issues/465
+        job_stores = {"default": SQLAlchemyJobStore(url=SETTINGS.postgres.sync_url)}
+        job_defaults = {"coalesce": True, "max_instances": 1}
+        return AsyncIOScheduler(
+            jobstores=job_stores,
+            job_defaults=job_defaults,
+            timezone=pytz.timezone("Europe/Lisbon"),
+        )
+
+
 class BotProvider(Provider):
     @provide(scope=Scope.APP)
-    async def bot(self) -> BioJardas:
+    async def bot(self, scheduler: AsyncIOScheduler) -> BioJardas:
         # ruff: noqa: PLC0415
         from bio_jardas.domains.config.cogs import ConfigCog
         from bio_jardas.domains.game.cogs import GameCog
@@ -46,25 +61,10 @@ class BotProvider(Provider):
             VocabularyCog,
         ]
 
-        bot = BioJardas.build()
+        bot = BioJardas.build(scheduler)
         for cog in all_cogs:
             bot.add_cog(cog(bot))
         return bot
-
-
-class SchedulerProvider(Provider):
-    @provide(scope=Scope.APP)
-    async def scheduler(self) -> AsyncIOScheduler:
-        # TODO: use the engine and metadata we already have
-        #  requires APScheduler v4, which hasn't been released yet
-        #  https://github.com/agronholm/apscheduler/issues/465
-        job_stores = {"default": SQLAlchemyJobStore(url=SETTINGS.postgres.sync_url)}
-        job_defaults = {"coalesce": True, "max_instances": 1}
-        return AsyncIOScheduler(
-            jobstores=job_stores,
-            job_defaults=job_defaults,
-            timezone=pytz.timezone("Europe/Lisbon"),
-        )
 
 
 class AsyncSessionProvider(Provider):

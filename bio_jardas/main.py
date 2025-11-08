@@ -1,7 +1,6 @@
 import asyncio
 
 import structlog
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from bio_jardas.bot import BioJardas
 from bio_jardas.dependency_injection import di_container
@@ -23,8 +22,6 @@ async def main() -> None:
     logger.info("Starting BioJardas")
 
     try:
-        scheduler = await di_container.get(AsyncIOScheduler)
-        scheduler.start()
         jardas = await di_container.get(BioJardas)
         jardas.register_di_container(di_container)
         await jardas.start(SETTINGS.discord.token)
