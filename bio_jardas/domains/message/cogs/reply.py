@@ -60,6 +60,11 @@ class ReplyCog(BaseCog):
             listener_event="on_message",
         )
 
+        # TODO: intensity check should come before this
+        #  if the bot is sleeping we don't do anything
+        #  if the bot is not sleeping, then it can short-circuit everything and reply
+        #  to a mention/reply
+        # TODO: the bot should reply to replies
         if self.bot.user.mentioned_in(message):
             reply = await message_service.random_message_from_group("mention")
             await logger.ainfo(
