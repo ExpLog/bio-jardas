@@ -29,7 +29,6 @@ from bio_jardas.domains.message.services import (
 )
 from bio_jardas.observability import (
     bind_error_cause,
-    bind_exception_info,
     bind_listener_context_to_logs,
 )
 from bio_jardas.shortcuts import author_id, channel_id
@@ -336,10 +335,8 @@ class ReplyCog(BaseCog):
     async def reply_obj_add_error(self, context: Context, exception: CommandError):
         if isinstance(exception.__cause__, EntityNotFoundError):
             bind_error_cause(str(exception.__cause__))
-        else:
-            bind_exception_info(exception)
-        await logger.aerror("Failed to add message group to target")
-        await context.message.add_reaction(emojis.FAILURE)
+            await logger.aerror("Failed to add message group to target")
+            await context.message.add_reaction(emojis.FAILURE)
 
     @reply_channel_apply_defaults.error
     async def reply_channel_apply_defaults_error(
@@ -347,10 +344,8 @@ class ReplyCog(BaseCog):
     ):
         if isinstance(exception.__cause__, ChannelHasMessageGroupsError):
             bind_error_cause(str(exception.__cause__))
-        else:
-            bind_exception_info(exception)
-        await logger.aerror("Failed to apply default message groups to channel")
-        await context.message.add_reaction(emojis.FAILURE)
+            await logger.ainfo("Failed to apply default message groups to channel")
+            await context.message.add_reaction(emojis.FAILURE)
 
 
 async def _ensure_group_names(context: Context, group_names: tuple[str, ...]) -> bool:
