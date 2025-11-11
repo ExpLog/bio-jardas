@@ -5,6 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 from disnake import Forbidden
 from disnake.ext.commands import Context
+from structlog.contextvars import get_merged_contextvars
 from whenever import ZonedDateTime
 
 import bio_jardas.exceptions as exc
@@ -70,7 +71,7 @@ class ShadowBanGame(Game[None]):
                 context.guild.id,
                 shadow_role.id,
                 member_role.id,
-                structlog.get_context(logger),
+                get_merged_contextvars(logger),
             ),
             misfire_grace_time=None,
         )
