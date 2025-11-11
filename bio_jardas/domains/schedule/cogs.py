@@ -11,6 +11,7 @@ from bio_jardas import emojis
 from bio_jardas.cogs import BaseCog
 from bio_jardas.command_checks import is_bot_owner
 from bio_jardas.dependency_injection import cog_inject
+from bio_jardas.domains.game.jobs import REMOVE_SHADOW_BAN_JOB_PREFIX
 from bio_jardas.domains.message.services import MessageService
 from bio_jardas.domains.schedule.jobs import random_scheduled_message
 from bio_jardas.domains.schedule.parsers import schedule_message_parser
@@ -80,3 +81,47 @@ class ScheduleCog(BaseCog):
             replace_existing=True,
         )
         await context.reply(f"Job scheduled: {job}")
+
+    @schedule.command("list")
+    @check(is_bot_owner)
+    @cog_inject
+    async def schedule_list(
+        self,
+        context: Context,
+        *,
+        scheduler: FromDishka[AsyncIOScheduler],
+    ) -> None:
+        jobs = scheduler.get_jobs()
+        if not jobs:
+            await context.send("No scheduled jobs")
+            return
+
+        message_parts = []
+        for job in jobs:
+            if REMOVE_SHADOW_BAN_JOB_PREFIX in job.id:
+                continue
+            part = f"id={job.id}, next_run_time={job.next_run_time}"
+            message_parts.append(part)
+
+        message = "\n".join(message_parts)
+        await context.reply(message)
+
+    @schedule.command("remove")
+    @check(is_bot_owner)
+    @cog_inject
+    async def schedule_remove(
+        self,
+        context: Context,
+        *,
+        job_id: str,
+        scheduler: FromDishka[AsyncIOScheduler],
+    ) -> None:
+        job = scheduler.get_job(job_id)
+        if not job or REMOVE_SHADOW_BAN_JOB_PREFIX in job.id:
+            await logger.ainfo("Failed to remove scheduled job")
+            await context.message.add_reaction(emojis.FAILURE)
+            await context.reply("This job doesn't exist", job_id=job_id)
+
+        await logger.ainfo("Removed scheduled job", job_id=job_id)
+        job.remove()
+        await context.message.add_reaction(emojis.SUCCESS)

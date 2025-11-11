@@ -24,7 +24,7 @@ Discord bot for the Aveiro Discord community.
   * [x] scoreboard
   * [x] self-ban/shadow
     * [x] remove ban after X hours has passed (requires scheduling)
-* [ ] good morning
+* [x] good morning
 * [x] fortune-teller
 * [ ] event reminder
 * [x] huggies
