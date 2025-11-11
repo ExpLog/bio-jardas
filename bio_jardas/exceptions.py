@@ -1,5 +1,9 @@
+MISSING_PERMISSION_CODE = 50013
+
+
 class JardasError(Exception):
     pass
 
 
-MISSING_PERMISSION_CODE = 50013
+class ParserError(JardasError):
+    pass

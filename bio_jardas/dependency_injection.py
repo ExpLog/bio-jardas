@@ -50,6 +50,7 @@ class BotProvider(Provider):
         from bio_jardas.domains.message.cogs.reply import ReplyCog
         from bio_jardas.domains.message.cogs.roast import RoastCog
         from bio_jardas.domains.message.cogs.vocabulary import VocabularyCog
+        from bio_jardas.domains.schedule.cogs import ScheduleCog
 
         all_cogs = [
             ConfigCog,
@@ -58,6 +59,7 @@ class BotProvider(Provider):
             HugCog,
             ReplyCog,
             RoastCog,
+            ScheduleCog,
             VocabularyCog,
         ]
 
@@ -141,6 +143,19 @@ def cog_inject(func):
         is_async=True,
         scope=Scope.REQUEST,
         container_getter=_get_di_cog_container,
+    )
+
+
+def _get_di_job_inject(*_args, **_kwargs) -> AsyncContainer:
+    return di_container
+
+
+def job_inject(func):
+    return wrap_injection(
+        func=func,
+        is_async=True,
+        scope=Scope.REQUEST,
+        container_getter=_get_di_job_inject,
     )
 
 

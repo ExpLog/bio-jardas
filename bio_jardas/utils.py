@@ -2,6 +2,7 @@ from collections.abc import Sequence
 
 import inflect
 from disnake import Color, Embed
+from disnake.ext.commands import Context
 from whenever import ZonedDateTime
 
 INFLECT = inflect.engine()
@@ -33,3 +34,16 @@ def snake_case_to_title(string: str) -> str:
 
 def mention_by_snowflake_id(snowflake_id: int) -> str:
     return f"<@{snowflake_id}>"
+
+
+def command_string(context: Context) -> str:
+    return f"{context.prefix}{context.command.qualified_name}"
+
+
+def shlex_command_has_help(
+    split_command: list[str], help_strings: tuple[str, ...] = ("--help", "-h")
+) -> bool:
+    for help_ in help_strings:
+        if help_ in split_command:
+            return True
+    return False

@@ -41,6 +41,9 @@ class MessageService:
         self.group_repo = group_repo
         self.choice_repo = choice_repo
 
+    async def message_group_exists(self, message_group_name: str) -> bool:
+        return await self.group_repo.exists(MessageGroup.name == message_group_name)
+
     async def random_message_group_choice(
         self, user_id: int, channel_id: int
     ) -> MessageGroupChoice | None:
