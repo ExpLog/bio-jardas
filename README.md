@@ -26,7 +26,7 @@ Discord bot for the Aveiro Discord community.
     * [x] remove ban after X hours has passed (requires scheduling)
 * [x] good morning
 * [x] fortune-teller
-* [ ] event reminder
+* [x] event reminder
 * [x] huggies
 * [x] roast
   * [x] roast user
