@@ -6,10 +6,10 @@ Discord bot for the Aveiro Discord community.
 ## TODO
 
 ### Features
-* [ ] replies
+* [x] replies
   * [x] general replies
   * [x] mention replies
-  * [ ] -mos replies
+  * [x] -mos replies
   * [x] add to default vocabulary
   * [x] add to any vocabulary
   * [x] replies configuration

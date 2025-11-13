@@ -62,6 +62,14 @@ async def load_csv(session: AsyncSession, csv_path: Path) -> InsertedRows:
         )
         for name in message_group_names
     ]
+    message_groups.append(
+        MessageGroup(
+            name="caralhamos",
+            dynamic_handler="caralhamos",
+            created_by=ETL_SYNTHETIC_SNOWFLAKE_ID,
+            updated_by=ETL_SYNTHETIC_SNOWFLAKE_ID,
+        )
+    )
     session.add_all(message_groups)
     await session.flush()
 

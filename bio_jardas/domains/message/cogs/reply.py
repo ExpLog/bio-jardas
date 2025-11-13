@@ -74,9 +74,8 @@ class ReplyCog(BaseCog):
         if intensity.roll_should_reply():
             return
 
-        # TODO: add the -mos dynamic message group
         reply = await message_service.random_message(
-            author_id(message), channel_id(message)
+            author_id(message), channel_id(message), message.content
         )
         if not reply:
             return

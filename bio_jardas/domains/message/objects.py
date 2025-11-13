@@ -21,3 +21,10 @@ class MessageGroupProbabilities:
     @property
     def percentages(self) -> str:
         return f"w={self.weight_percentage} r={self.roll_percentage}"
+
+
+@dataclass(slots=True, frozen=True)
+class DynamicMessage:
+    id: int
+    group_id: int
+    text: str

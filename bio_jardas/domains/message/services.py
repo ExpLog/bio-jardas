@@ -6,21 +6,33 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from structlog.contextvars import bind_contextvars
 
+from bio_jardas.constants import SYSTEM_SNOWFLAKE_ID
 from bio_jardas.domains.message.dtos import UpsertMessageGroupChoice
 from bio_jardas.domains.message.enums import DynamicMessageHandlerEnum
 from bio_jardas.domains.message.models import Message, MessageGroup, MessageGroupChoice
-from bio_jardas.domains.message.objects import MessageGroupProbabilities
+from bio_jardas.domains.message.objects import DynamicMessage, MessageGroupProbabilities
 from bio_jardas.domains.message.repositories import (
     MessageGroupChoiceRepository,
     MessageGroupRepository,
     MessageRepository,
 )
 from bio_jardas.exceptions import JardasError
+from bio_jardas.stopwords import tokenize
 from bio_jardas.utils import first
 
 logger = structlog.stdlib.get_logger()
 
-DEFAULT_CHANNEL_MESSAGE_GROUPS = {
+DEFAULT_CHANNEL_MESSAGE_GROUPS = [
+    "dark_joke",
+    "shower_thought",
+    "catcall",
+    "user_added_vocabulary",
+    "generic_seldom",
+    "generic_sometimes",
+    "generic_often",
+    "caralhamos",
+]
+DEFAULT_WEIGHTS = {
     "dark_joke": 1.0,
     "shower_thought": 1.0,
     "catcall": 2.0,
@@ -29,6 +41,7 @@ DEFAULT_CHANNEL_MESSAGE_GROUPS = {
     "generic_sometimes": 6.0,
     "generic_often": 8.0,
 }
+DEFAULT_PROBABILITIES = {"caralhamos": 0.01}
 
 
 class MessageService:
@@ -65,7 +78,9 @@ class MessageService:
             random.choices(weighted_choices, [c.weight for c in weighted_choices])
         )
 
-    async def random_message(self, user_id: int, channel_id: int) -> Message | None:
+    async def random_message(
+        self, user_id: int, channel_id: int, trigger_message: str
+    ) -> Message | DynamicMessage | None:
         message_group_choice = await self.random_message_group_choice(
             user_id, channel_id
         )
@@ -79,6 +94,10 @@ class MessageService:
         match dynamic_handler:
             case DynamicMessageHandlerEnum.RANDOM_MESSAGE:
                 return await self.msg_repo.get_random(message_group_choice.group_id)
+            case DynamicMessageHandlerEnum.CARALHAMOS:
+                return await self.caralhamos(
+                    trigger_message, message_group_choice.group_id
+                )
             case _:
                 raise JardasError("Unknown dynamic message handler")
 
@@ -98,13 +117,14 @@ class MessageService:
             raise ChannelHasMessageGroupsError
 
         message_groups = await self.group_repo.get_many(
-            MessageGroup.name.in_(list(DEFAULT_CHANNEL_MESSAGE_GROUPS.keys()))
+            MessageGroup.name.in_(DEFAULT_CHANNEL_MESSAGE_GROUPS)
         )
         message_group_choices = [
             MessageGroupChoice(
                 snowflake_id=channel_id,
                 group_id=mg.id,
-                weight=DEFAULT_CHANNEL_MESSAGE_GROUPS[mg.name],
+                weight=DEFAULT_WEIGHTS.get(mg.name, 0.0),
+                independent_roll_probability=DEFAULT_PROBABILITIES.get(mg.name, 0.0),
                 is_channel=True,
                 created_by=author_id,
                 updated_by=author_id,
@@ -181,6 +201,28 @@ class MessageService:
             message_id=message.id,
         )
         return await self.msg_repo.get_random_by_group_name("vocabulary_added")
+
+    async def caralhamos(
+        self, trigger_message: str, group_id: int
+    ) -> DynamicMessage | None:
+        tokens = tokenize(trigger_message)
+        random.shuffle(tokens)
+        for token in tokens:
+            new_token = None
+
+            if token.endswith(("ar", "er")):
+                new_token = token[:-1] + "mos"
+            elif token.endswith("ir"):
+                new_token = token[:-2] + "emos"
+            elif token.endswith(("o", "ao", "te")):
+                new_token = token[:-1] + "amos"
+            elif token.endswith("a"):
+                new_token = token + "mos"
+
+            if new_token:
+                return DynamicMessage(SYSTEM_SNOWFLAKE_ID, group_id, new_token)
+
+        return None
 
 
 class ChannelHasMessageGroupsError(JardasError):
