@@ -1,4 +1,3 @@
-import random
 
 import structlog
 from dishka import FromDishka
@@ -59,10 +58,10 @@ class ReplyCog(BaseCog):
             listener_event="on_message",
         )
 
-        # TODO: intensity check should come before this
-        #  if the bot is sleeping we don't do anything
-        #  if the bot is not sleeping, then it can short-circuit everything and reply
-        #  to a mention/reply
+        intensity = await config_service.get_intensity()
+        if intensity.is_sleeping():
+            return
+
         # TODO: the bot should reply to replies
         if self.bot.user.mentioned_in(message):
             reply = await message_service.random_message_from_group("mention")
@@ -74,8 +73,7 @@ class ReplyCog(BaseCog):
             await message.channel.send(reply.text)
             return
 
-        intensity = await config_service.get_intensity()
-        if random.random() > intensity.reply_probability():
+        if intensity.roll_should_reply():
             return
 
         # TODO: add the -mos dynamic message group

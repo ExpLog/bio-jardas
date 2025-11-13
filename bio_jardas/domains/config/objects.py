@@ -1,3 +1,4 @@
+import random
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
@@ -40,3 +41,6 @@ class ReplyIntensityConfig(BaseModel):
             case _:
                 probability = 1 / 17
         return probability
+
+    def roll_should_reply(self) -> bool:
+        return random.random() > self.reply_probability()
