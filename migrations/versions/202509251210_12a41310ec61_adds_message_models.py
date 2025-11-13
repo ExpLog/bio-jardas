@@ -27,6 +27,12 @@ def upgrade() -> None:
         sa.Column(
             "description", sa.String(length=1000), server_default="", nullable=False
         ),
+        sa.Column(
+            "dynamic_handler",
+            sa.String(length=100),
+            server_default="random_message",
+            nullable=False,
+        ),
         sa.Column("disabled", sa.Boolean(), server_default="false", nullable=False),
         sa.Column(
             "created_by",

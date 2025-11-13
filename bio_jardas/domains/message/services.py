@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload
 from structlog.contextvars import bind_contextvars
 
 from bio_jardas.domains.message.dtos import UpsertMessageGroupChoice
+from bio_jardas.domains.message.enums import DynamicMessageHandlerEnum
 from bio_jardas.domains.message.models import Message, MessageGroup, MessageGroupChoice
 from bio_jardas.domains.message.objects import MessageGroupProbabilities
 from bio_jardas.domains.message.repositories import (
@@ -48,7 +49,8 @@ class MessageService:
         self, user_id: int, channel_id: int
     ) -> MessageGroupChoice | None:
         choices = await self.choice_repo.get_many(
-            MessageGroupChoice.snowflake_id.in_((user_id, channel_id))
+            MessageGroupChoice.snowflake_id.in_((user_id, channel_id)),
+            options=[joinedload(MessageGroupChoice.group)],
         )
         if not choices:
             return None
@@ -69,8 +71,16 @@ class MessageService:
         )
         if not message_group_choice:
             return None
-        bind_contextvars(roll_type=message_group_choice.roll_type)
-        return await self.msg_repo.get_random(message_group_choice.group_id)
+
+        dynamic_handler = message_group_choice.group.dynamic_handler_enum
+        bind_contextvars(
+            roll_type=message_group_choice.roll_type, dynamic_handler=dynamic_handler
+        )
+        match dynamic_handler:
+            case DynamicMessageHandlerEnum.RANDOM_MESSAGE:
+                return await self.msg_repo.get_random(message_group_choice.group_id)
+            case _:
+                raise JardasError("Unknown dynamic message handler")
 
     async def random_message_from_group(self, message_group_name: str):
         message_group = await self.group_repo.get_one(

@@ -24,6 +24,18 @@ if config.config_file_name is not None:
 target_metadata = metadata
 
 
+def include_object(obj, name, type_, reflected, compare_to):  # noqa: ARG001
+    if type_ == "table" and name in {"apscheduler_jobs"}:
+        return False
+
+    if type_ in {"index", "column", "constraint"}:
+        parent = obj.table if hasattr(obj, "table") else None
+        if parent is not None and parent.name in {"apscheduler_jobs"}:
+            return False
+
+    return True
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -42,6 +54,7 @@ def run_migrations_offline() -> None:
         include_schemas=True,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -50,7 +63,10 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
-        connection=connection, target_metadata=target_metadata, include_schemas=True
+        connection=connection,
+        target_metadata=target_metadata,
+        include_schemas=True,
+        include_object=include_object,
     )
 
     with context.begin_transaction():

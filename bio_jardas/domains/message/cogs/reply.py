@@ -1,4 +1,3 @@
-
 import structlog
 from dishka import FromDishka
 from disnake import Member
@@ -62,7 +61,6 @@ class ReplyCog(BaseCog):
         if intensity.is_sleeping():
             return
 
-        # TODO: the bot should reply to replies
         if self.bot.user.mentioned_in(message):
             reply = await message_service.random_message_from_group("mention")
             await logger.ainfo(

@@ -11,11 +11,14 @@ that's leveraged by actual features.
 from typing import Literal
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from bio_jardas.db.models import AuditBase
 
 __all__ = ["Message", "MessageGroup", "MessageGroupChoice"]
+
+from bio_jardas.domains.message.enums import DynamicMessageHandlerEnum
 
 
 class MessageGroup(AuditBase):
@@ -26,6 +29,16 @@ class MessageGroup(AuditBase):
     description: Mapped[str] = mapped_column(
         sa.String(1000), nullable=False, default="", server_default="''"
     )
+    dynamic_handler: Mapped[str] = mapped_column(
+        String(length=100),
+        default=DynamicMessageHandlerEnum.RANDOM_MESSAGE,
+        server_default=f"{DynamicMessageHandlerEnum.RANDOM_MESSAGE}",
+        nullable=False,
+    )
+    disabled: Mapped[bool] = mapped_column(
+        sa.Boolean, nullable=False, default=False, server_default="false"
+    )
+
     messages: Mapped[list["Message"]] = relationship(
         back_populates="group",
         cascade="all, delete-orphan",
@@ -36,9 +49,16 @@ class MessageGroup(AuditBase):
         cascade="all, delete-orphan",
         lazy="raise",
     )
-    disabled: Mapped[bool] = mapped_column(
-        sa.Boolean, nullable=False, default=False, server_default="false"
-    )
+
+    @property
+    def dynamic_handler_enum(self) -> DynamicMessageHandlerEnum:
+        return DynamicMessageHandlerEnum(self.dynamic_handler)
+
+    @validates("dynamic_handler")
+    def _validate_dynamic_handler(self, _key, value):
+        if isinstance(value, DynamicMessageHandlerEnum):
+            return value.value
+        return DynamicMessageHandlerEnum(value).value
 
 
 class Message(AuditBase):
