@@ -16,7 +16,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from bio_jardas.db.models import AuditBase
 
-__all__ = ["Message", "MessageGroup", "MessageGroupChoice"]
+__all__ = ["ChannelEnabled", "Message", "MessageGroup", "MessageGroupChoice"]
 
 from bio_jardas.domains.message.enums import DynamicMessageHandlerEnum
 
@@ -161,3 +161,12 @@ class MessageGroupChoice(AuditBase):
         if self.is_weighted_roll:
             return "weighted"
         return "independent"
+
+
+class ChannelEnabled(AuditBase):
+    __tablename__ = "channel_enabled"
+    __table_args__ = ({"schema": "message"},)
+
+    channel_snowflake_id: Mapped[int] = mapped_column(
+        sa.BigInteger, nullable=False, index=True
+    )

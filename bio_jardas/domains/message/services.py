@@ -9,9 +9,15 @@ from structlog.contextvars import bind_contextvars
 from bio_jardas.constants import SYSTEM_SNOWFLAKE_ID
 from bio_jardas.domains.message.dtos import UpsertMessageGroupChoice
 from bio_jardas.domains.message.enums import DynamicMessageHandlerEnum
-from bio_jardas.domains.message.models import Message, MessageGroup, MessageGroupChoice
+from bio_jardas.domains.message.models import (
+    ChannelEnabled,
+    Message,
+    MessageGroup,
+    MessageGroupChoice,
+)
 from bio_jardas.domains.message.objects import DynamicMessage, MessageGroupProbabilities
 from bio_jardas.domains.message.repositories import (
+    ChannelEnabledRepository,
     MessageGroupChoiceRepository,
     MessageGroupRepository,
     MessageRepository,
@@ -50,10 +56,12 @@ class MessageService:
         msg_repo: MessageRepository,
         group_repo: MessageGroupRepository,
         choice_repo: MessageGroupChoiceRepository,
+        channel_enabled_repo: ChannelEnabledRepository,
     ):
         self.msg_repo = msg_repo
         self.group_repo = group_repo
         self.choice_repo = choice_repo
+        self.channel_enabled_repo = channel_enabled_repo
 
     async def message_group_exists(self, message_group_name: str) -> bool:
         return await self.group_repo.exists(MessageGroup.name == message_group_name)
@@ -63,6 +71,7 @@ class MessageService:
     ) -> MessageGroupChoice | None:
         choices = await self.choice_repo.get_many(
             MessageGroupChoice.snowflake_id.in_((user_id, channel_id)),
+            self.channel_enabled_repo.is_channel_enabled_query(channel_id),
             options=[joinedload(MessageGroupChoice.group)],
         )
         if not choices:
@@ -223,6 +232,28 @@ class MessageService:
                 return DynamicMessage(SYSTEM_SNOWFLAKE_ID, group_id, new_token)
 
         return None
+
+    async def enable_channel_replies(
+        self, channel_snowflake_id: int, user_snowflake_id: int
+    ) -> None:
+        channel_enabled = ChannelEnabled(
+            channel_snowflake_id=channel_snowflake_id,
+            created_by=user_snowflake_id,
+            updated_by=user_snowflake_id,
+        )
+        await self.channel_enabled_repo.add(channel_enabled)
+        await logger.ainfo(
+            "Enabled channel replies",
+        )
+
+    async def disable_channel_replies(self, channel_snowflake_id: int) -> bool:
+        deleted_rows = await self.channel_enabled_repo.delete_where(
+            ChannelEnabled.channel_snowflake_id == channel_snowflake_id
+        )
+        await logger.ainfo(
+            "Disabled channel replies",
+        )
+        return deleted_rows > 0
 
 
 class ChannelHasMessageGroupsError(JardasError):

@@ -37,9 +37,7 @@ logger = structlog.stdlib.get_logger()
 
 # TODO: differentiate between internal errors and user errors in logs
 # TODO: actually obey the disabled columns
-# TODO: replies + all configurations should only be allowed in configured channels
-#  actually, we need to decide if management will be done on the guild or bot or both
-#  specially since user-specific replies can happen in any channel at the moment
+# TODO: enforce ChannelEnabled everywhere
 class ReplyCog(BaseCog):
     @Cog.listener("on_message")
     @skip_bots_and_commands
@@ -160,6 +158,27 @@ class ReplyCog(BaseCog):
     async def reply_channel(self, context: Context) -> None:
         # TODO: add some help text
         await context.reply("WIP help")
+
+    @reply_channel.command(name="enable")
+    @check(is_bot_owner)
+    @cog_inject
+    async def reply_channel_enable(
+        self, context: Context, *, message_service: FromDishka[MessageService]
+    ) -> None:
+        await message_service.enable_channel_replies(
+            channel_id(context), author_id(context)
+        )
+        await context.message.add_reaction(emojis.SUCCESS)
+
+    @reply_channel.command(name="disable")
+    @check(is_bot_owner)
+    @cog_inject
+    async def reply_channel_disable(
+        self, context: Context, *, message_service: FromDishka[MessageService]
+    ) -> None:
+        success = await message_service.disable_channel_replies(channel_id(context))
+        emoji = emojis.SUCCESS if success else emojis.FAILURE
+        await context.message.add_reaction(emoji)
 
     @reply_channel.command(name="add", aliases=("assign", "+"))
     @check(is_bot_owner)

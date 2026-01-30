@@ -6,7 +6,6 @@ from sqlalchemy.sql.type_api import _T
 from whenever import ZonedDateTime
 
 
-# TODO: switch Mapped[datetime] to Mapped[ZonedDateTimeType]
 class ZonedDateTimeType(TypeDecorator):
     impl = DateTime(timezone=True)
     cache_ok = True

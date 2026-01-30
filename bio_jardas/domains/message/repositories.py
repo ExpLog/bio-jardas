@@ -1,8 +1,13 @@
-from sqlalchemy import func, select
+from sqlalchemy import Exists, exists, func, select
 
 from bio_jardas.db.exceptions import EntityNotFoundError
 from bio_jardas.db.repositories import CRUDRepository
-from bio_jardas.domains.message.models import Message, MessageGroup, MessageGroupChoice
+from bio_jardas.domains.message.models import (
+    ChannelEnabled,
+    Message,
+    MessageGroup,
+    MessageGroupChoice,
+)
 
 
 class MessageRepository(CRUDRepository[Message]):
@@ -62,3 +67,13 @@ class MessageGroupRepository(CRUDRepository[MessageGroup]):
 
 class MessageGroupChoiceRepository(CRUDRepository[MessageGroupChoice]):
     model_type = MessageGroupChoice
+
+
+class ChannelEnabledRepository(CRUDRepository[ChannelEnabled]):
+    model_type = ChannelEnabled
+
+    @staticmethod
+    def is_channel_enabled_query(channel_snowflake_id: int) -> Exists:
+        return exists(ChannelEnabled).where(
+            ChannelEnabled.channel_snowflake_id == channel_snowflake_id
+        )

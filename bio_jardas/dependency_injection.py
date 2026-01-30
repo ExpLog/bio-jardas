@@ -14,6 +14,7 @@ from bio_jardas.domains.config.services import ConfigService
 from bio_jardas.domains.game.repositories import ScoreRepository
 from bio_jardas.domains.game.services import GameService
 from bio_jardas.domains.message.repositories import (
+    ChannelEnabledRepository,
     MessageGroupChoiceRepository,
     MessageGroupRepository,
     MessageRepository,
@@ -96,6 +97,12 @@ class RepositoryProvider(Provider):
         return MessageGroupChoiceRepository(session)
 
     @provide()
+    async def channel_enabled_repository(
+        self, session: AsyncSession
+    ) -> ChannelEnabledRepository:
+        return ChannelEnabledRepository(session)
+
+    @provide()
     async def score_repository(self, session: AsyncSession) -> ScoreRepository:
         return ScoreRepository(session)
 
@@ -113,8 +120,11 @@ class ServiceProvider(Provider):
         message_repo: MessageRepository,
         group_repo: MessageGroupRepository,
         choice_repo: MessageGroupChoiceRepository,
+        channel_enabled_repo: ChannelEnabledRepository,
     ) -> MessageService:
-        return MessageService(message_repo, group_repo, choice_repo)
+        return MessageService(
+            message_repo, group_repo, choice_repo, channel_enabled_repo
+        )
 
     @provide()
     async def config_service(self, session: AsyncSession) -> ConfigService:
