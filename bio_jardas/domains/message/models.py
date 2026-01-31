@@ -163,6 +163,10 @@ class MessageGroupChoice(AuditBase):
         return "independent"
 
 
+# TODO: intensity should be part of this model
+#  then we can control it per channel
+#  this should also contain guild_snowflake_it, so we can set intensity for all
+#  enabled channels in one go
 class ChannelEnabled(AuditBase):
     __tablename__ = "channel_enabled"
     __table_args__ = ({"schema": "message"},)

@@ -1,0 +1,32 @@
+# meant to be deployed in Unraid using the docker-compose plugin
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - /mnt/user/appdata/bio-jardas/postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  bio-jardas:
+    image: tower.local:5000/bio-jardas:latest
+    container_name: bio-jardas
+    env_file: /mnt/user/appdata/bio-jardas/.env
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - /bin/sh
+      - -c
+      - |
+        uv run --no-sync alembic upgrade head &&
+        exec uv run --no-sync -m bio_jardas.main
