@@ -3,11 +3,12 @@ import random
 import structlog
 from dishka import FromDishka
 from disnake import Member
-from disnake.ext.commands import Context, group
+from disnake.ext.commands import Context, dynamic_cooldown, group
 
 from bio_jardas.cogs import BaseCog
 from bio_jardas.dependency_injection import cog_inject
 from bio_jardas.domains.message.services import MessageService
+from bio_jardas.guild_custom import jecs_cooldown
 
 logger = structlog.stdlib.get_logger()
 
@@ -32,6 +33,7 @@ class RoastCog(BaseCog):
         await _roast_target(context, context.author, message_service)
 
     @roast.command(name="random")
+    @dynamic_cooldown(cooldown=jecs_cooldown)
     @cog_inject
     async def roast_random(
         self, context: Context, *, message_service: FromDishka[MessageService]
