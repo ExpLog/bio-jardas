@@ -3,7 +3,7 @@ import random
 import structlog
 from dishka import FromDishka
 from disnake import Member
-from disnake.ext.commands import Context, dynamic_cooldown, group, BucketType
+from disnake.ext.commands import BucketType, Context, dynamic_cooldown, group
 
 from bio_jardas.cogs import BaseCog
 from bio_jardas.dependency_injection import cog_inject

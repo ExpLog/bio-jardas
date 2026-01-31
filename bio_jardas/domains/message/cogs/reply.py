@@ -3,12 +3,10 @@ from dishka import FromDishka
 from disnake import Member
 from disnake import Message as DiscordMessage
 from disnake.ext.commands import (
-    BucketType,
     Cog,
     CommandError,
     Context,
     check,
-    cooldown,
     group,
 )
 from structlog.contextvars import bind_contextvars
@@ -98,7 +96,6 @@ class ReplyCog(BaseCog):
     # discoverability
     @reply.command(name="groups")
     @check(is_bot_owner)
-    @cooldown(1, 60, BucketType.channel)
     @cog_inject
     async def reply_groups(
         self,
@@ -118,7 +115,6 @@ class ReplyCog(BaseCog):
 
     @reply_show.command(name="channel")
     @check(is_bot_owner)
-    @cooldown(1, 10, BucketType.channel)
     @cog_inject
     async def reply_show_channel(
         self,
@@ -134,7 +130,6 @@ class ReplyCog(BaseCog):
 
     @reply_show.command(name="user")
     @check(is_bot_owner)
-    @cooldown(1, 10, BucketType.channel)
     @cog_inject
     async def reply_show_user(
         self,
