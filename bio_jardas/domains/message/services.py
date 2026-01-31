@@ -213,7 +213,7 @@ class MessageService:
 
     async def add_message_group(self, message_group_name: str, user_id: int):
         # TODO: don't allow spaces etc
-        if self.message_group_exists:
+        if await self.message_group_exists(message_group_name):
             return
         group = MessageGroup(
             name=message_group_name,
