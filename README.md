@@ -12,6 +12,7 @@ Discord bot for the Aveiro Discord community.
   * [x] -mos replies
   * [x] add to default vocabulary
   * [x] add to any vocabulary
+    * [ ] vocabulary_admin should have a suboption to create the message group
   * [x] replies configuration
     * [x] channel
     * [x] user
@@ -25,6 +26,8 @@ Discord bot for the Aveiro Discord community.
   * [x] glock roulette
   * [x] hardcore roulette
   * [x] scoreboard
+    * [ ] fix empty highscores
+    * [ ] reset each month and announce winners
   * [x] self-ban/shadow
     * [x] remove ban after X hours has passed (requires scheduling)
 * [x] good morning
@@ -33,6 +36,7 @@ Discord bot for the Aveiro Discord community.
 * [x] huggies
 * [x] roast
   * [x] roast user
+    * [ ] support roles
   * [x] self roast
   * [x] random roast
 * [ ] nuke
@@ -50,6 +54,7 @@ Discord bot for the Aveiro Discord community.
 * [x] refactor models and repositories into domains
 * [ ] migrations should create the default message groups
 * [ ] cooldown errors should not throw exceptions in logs
+* [ ] handle DMChannel.name gracefully (DMChannels have no name)
 
 ### Take a look at
 * [ ] gradio and/or streamlit for external apps
