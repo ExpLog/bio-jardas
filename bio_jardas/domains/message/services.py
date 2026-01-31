@@ -211,6 +211,20 @@ class MessageService:
         )
         return await self.msg_repo.get_random_by_group_name("vocabulary_added")
 
+    async def add_message_group(self, message_group_name: str, user_id: int):
+        # TODO: don't allow spaces etc
+        if self.message_group_exists:
+            return
+        group = MessageGroup(
+            name=message_group_name,
+            description="",
+            disabled=False,
+            created_by=user_id,
+            updated_by=user_id,
+        )
+        await self.group_repo.add(group)
+        await logger.ainfo("Added new message group", message_group_id=group.id)
+
     async def caralhamos(
         self, trigger_message: str, group_id: int
     ) -> DynamicMessage | None:

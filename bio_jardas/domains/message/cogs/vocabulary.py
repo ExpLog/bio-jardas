@@ -1,6 +1,7 @@
 from dishka import FromDishka
 from disnake.ext.commands import Context, check, command
 
+from bio_jardas import emojis
 from bio_jardas.cogs import BaseCog
 from bio_jardas.command_checks import is_bot_owner
 from bio_jardas.dependency_injection import cog_inject
@@ -28,6 +29,7 @@ class VocabularyCog(BaseCog):
             message_id=reply.id,
         )
         await context.channel.send(reply.text)
+        await context.message.add_reaction(emojis.SUCCESS)
 
     @command(name="vocabulary_admin")
     @check(is_bot_owner)
@@ -49,3 +51,16 @@ class VocabularyCog(BaseCog):
             message_id=reply.id,
         )
         await context.channel.send(reply.text)
+
+    @command(name="add_message_group")
+    @check(is_bot_owner)
+    @cog_inject
+    async def add_message_group(
+        self,
+        context: Context,
+        message_group_name: str,
+        *,
+        message_service: FromDishka[MessageService],
+    ):
+        await message_service.add_message_group(message_group_name, author_id(context))
+        await context.message.add_reaction(emojis.SUCCESS)
