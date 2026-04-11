@@ -62,8 +62,9 @@ The `etl/` directory contains scripts for initial data loading.
 
 ## Testing
 
-* **Status**: There is currently no automated test suite in this project.
-* **Verification**: Changes must be verified manually by running the bot and testing commands in a development Discord server.
+* **Status**: The project uses `pytest` and `pytest-asyncio` for automated testing.
+* **Running Tests**: Use `make py/test` to run the test suite.
+* **Verification**: Changes should be verified with automated tests in `tests/` whenever possible. Manual verification in a development Discord server is still recommended for Cog-level interactions.
 
 ## Building and Running
 

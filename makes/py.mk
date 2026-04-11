@@ -9,6 +9,7 @@ py/help:
 	@echo "  py/install                 - Install Python and project dependencies"
 	@echo "  py/fmt                     - Format Python code"
 	@echo "  py/lint                    - Lint Python code"
+	@echo "  py/test                    - Run tests"
 	@echo
 
 
@@ -16,6 +17,11 @@ py/help:
 py/install:
 	uv lock --check
 	uv sync --frozen --all-groups
+
+
+.PHONY: py/test
+py/test:
+	uv run pytest tests/
 
 
 .PHONY: py/fmt
