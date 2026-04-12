@@ -6,7 +6,7 @@ from apscheduler.triggers.date import DateTrigger
 from disnake import Forbidden
 from disnake.ext.commands import Context
 from structlog.contextvars import get_merged_contextvars
-from whenever import ZonedDateTime
+from whenever import Instant
 
 import bio_jardas.exceptions as exc
 from bio_jardas.domains.game.games.base import Game
@@ -63,7 +63,7 @@ class ShadowBanGame(Game[None]):
         await player.send("You are now shadow banned. Get to work weakling!")
         await logger.ainfo("User shadow banned")
 
-        unban_time = ZonedDateTime.now_in_system_tz().add(hours=self.hours)
+        unban_time = Instant.now().add(hours=self.hours)
         self.scheduler.add_job(
             remove_shadow_ban,
             trigger=DateTrigger(run_date=unban_time.py_datetime()),
