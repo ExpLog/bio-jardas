@@ -40,6 +40,9 @@ lint.select = ["ALL"]  # TODO: change this
 lint.ignore = ["D", "COM", "ANN", "SIM", "EM", "TRY", "TD", "FIX", "S311", "RUF012", "FBT", "PLR0913", "B904"]
 exclude = [".ipython_startup.py"]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "PLR2004"]
+
 [tool.alembic]
 script_location = "%(here)s/migrations"
 version_locations = ["%(here)s/migrations/versions"]
@@ -59,5 +62,6 @@ module = "ruff"
 options = "format REVISION_SCRIPT_FILENAME"
 
 [tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 testpaths = ["tests"]

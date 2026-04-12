@@ -65,13 +65,18 @@ The `etl/` directory contains scripts for initial data loading.
 * **Status**: The project uses `pytest` and `pytest-asyncio` for automated testing.
 * **Running Tests**: Use `make py/test` to run the test suite.
 * **Verification**: Changes should be verified with automated tests in `tests/` whenever possible. Manual verification in a development Discord server is still recommended for Cog-level interactions.
+* **Philosophy**:
+  * **High-Fidelity**: Never mock the database or use a different engine (like SQLite). Always use the project's real PostgreSQL instance running in local Docker.
+  * **Isolation**: Every test must run within a transaction that is rolled back at the end to ensure the database remains clean.
+  * **Execution**: Always use `uv run -m pytest tests/` (or `make py/test`) to ensure correct Python module discovery.
+  * **Async Tests**: Do NOT use the `@pytest.mark.asyncio` decorator. The project is configured with `asyncio_mode = "auto"`, which automatically handles all `async def` tests and fixtures.
 
 ## Building and Running
 
 ### Development Environment
 
 * **Install Dependencies**: Use `make py/install` (which runs `uv sync`).
-* **Environment Variables**: The bot expects a `.env` file (see `README.md` for mounting instructions in Docker).
+* **Environment Variables**: The bot expects a `.env` file. Initialize by copying `.env.sample` if it's missing or updated.
 
 ### Commands
 
@@ -81,19 +86,20 @@ Key tasks should be performed using the project's `Makefile`:
   * `make py/install`: Sync dependencies via `uv`.
   * `make py/fmt`: Format and fix linting issues using `ruff`.
   * `make py/lint`: Check for linting and formatting issues.
+  * `make py/test`: Run the test suite.
   * `make py/ipython`: Start an interactive `ipython` session with `.ipython_startup.py`.
 * **Database**:
   * `make db/revision m="description"`: Create a new Alembic migration.
   * `make db/upgrade`: Upgrade the database to the latest revision.
   * `make db/downgrade revision="rev"`: Downgrade to a specific revision.
-
-### Docker
-
-Refer to the `README.md` for specific Docker build and run commands, especially for cross-platform (Mac to Linux) builds.
+* **Docker**:
+  * `make docker/up`: Start the PostgreSQL service.
+  * `make docker/down`: Stop services.
+  * `make docker/downv`: Stop services and remove volumes.
 
 ## Development Conventions
 
-* **Tooling**: Always prefer `uv run` and the project's `Makefile` targets. Never invoke `python`, `pip`, or `alembic` directly.
+* **Tooling**: Always prefer `uv run` and the project's `Makefile` targets. Never invoke `python`, `pip`, or `alembic` directly. Use `uv add` to manage dependencies.
 * **Domain Structure**: When adding new features, follow the existing domain pattern in `bio_jardas/domains/<domain_name>/`:
   * `models.py`: SQLAlchemy models.
   * `repositories.py`: Data access logic.
@@ -113,6 +119,7 @@ Refer to the `README.md` for specific Docker build and run commands, especially 
   * Use `structlog` for logging. Get logger via `structlog.stdlib.get_logger()`.
   * Bind context variables using `bind_contextvars(...)` (from `structlog.contextvars`).
   * Use project-specific helpers like `bind_command_context_to_logs(context)` or `bind_listener_context_to_logs(context)` for consistent logging metadata.
-* **Linting**: Adhere to the `ruff` configuration in `pyproject.toml`. Run `make py/fmt` before submitting any changes.
+* **Standards**:
+  * **PEP8**: All code must strictly follow PEP8 conventions. Run `make py/fmt` and `make py/lint` before submitting any changes.
 * **Migrations**: Always use `make db/revision` for schema changes.
 * **Error Handling**: Differentiate between user-facing errors (which may be ignored or signaled via emoji) and internal errors in logs using `structlog`. Use the `emojis` module for consistent feedback.

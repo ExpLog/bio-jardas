@@ -21,7 +21,7 @@ py/install:
 
 .PHONY: py/test
 py/test:
-	uv run pytest tests/
+	uv run -m pytest tests/
 
 
 .PHONY: py/fmt
