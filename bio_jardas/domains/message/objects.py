@@ -12,6 +12,8 @@ class MessageGroupProbabilities:
 
     @property
     def weight_percentage(self) -> str:
+        if self.total_weight == 0:
+            return probability_as_percentage(0.0)
         return probability_as_percentage(self.weight / self.total_weight)
 
     @property
