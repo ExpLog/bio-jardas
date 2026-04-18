@@ -17,7 +17,7 @@ from bio_jardas.command_checks import is_bot_owner
 from bio_jardas.db.exceptions import EntityNotFoundError
 from bio_jardas.decorators import skip_bots_and_commands
 from bio_jardas.dependency_injection import cog_inject
-from bio_jardas.domains.config.services import ConfigService
+from bio_jardas.domains.config.services import IntensityService
 from bio_jardas.domains.message.dtos import UpsertMessageGroupChoice
 from bio_jardas.domains.message.services import (
     ChannelHasMessageGroupsError,
@@ -45,7 +45,7 @@ class ReplyCog(BaseCog):
         message: DiscordMessage,
         *,
         message_service: FromDishka[MessageService],
-        config_service: FromDishka[ConfigService],
+        intensity_service: FromDishka[IntensityService],
     ) -> None:
         bind_listener_context_to_logs(await self.get_message_context(message))
         bind_contextvars(
@@ -53,7 +53,7 @@ class ReplyCog(BaseCog):
             listener_event="on_message",
         )
 
-        intensity = await config_service.get_intensity()
+        intensity = await intensity_service.get_intensity(channel_id(message))
         if intensity.is_sleeping():
             return
 

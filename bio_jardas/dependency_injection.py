@@ -10,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bio_jardas.bot import BioJardas
 from bio_jardas.db.engine import transaction
-from bio_jardas.domains.config.services import ConfigService
+from bio_jardas.domains.config.repositories import IntensityRepository
+from bio_jardas.domains.config.services import IntensityService
 from bio_jardas.domains.game.repositories import ScoreRepository
 from bio_jardas.domains.game.services import GameService
 from bio_jardas.domains.message.repositories import (
@@ -44,7 +45,7 @@ class BotProvider(Provider):
     @provide(scope=Scope.APP)
     async def bot(self, scheduler: AsyncIOScheduler) -> BioJardas:
         # ruff: noqa: PLC0415
-        from bio_jardas.domains.config.cogs import ConfigCog
+        from bio_jardas.domains.config.cogs import IntensityCog
         from bio_jardas.domains.game.cogs import GameCog
         from bio_jardas.domains.message.cogs.fortune_teller import FortuneTellerCog
         from bio_jardas.domains.message.cogs.hug import HugCog
@@ -54,7 +55,7 @@ class BotProvider(Provider):
         from bio_jardas.domains.schedule.cogs import ScheduleCog
 
         all_cogs = [
-            ConfigCog,
+            IntensityCog,
             FortuneTellerCog,
             GameCog,
             HugCog,
@@ -110,6 +111,10 @@ class RepositoryProvider(Provider):
     async def time_gate_repository(self, session: AsyncSession) -> TimeGateRepository:
         return TimeGateRepository(session)
 
+    @provide()
+    async def intensity_repository(self, session: AsyncSession) -> IntensityRepository:
+        return IntensityRepository(session)
+
 
 class ServiceProvider(Provider):
     scope = Scope.REQUEST
@@ -127,8 +132,8 @@ class ServiceProvider(Provider):
         )
 
     @provide()
-    async def config_service(self, session: AsyncSession) -> ConfigService:
-        return ConfigService(session)
+    async def intensity_service(self, repo: IntensityRepository) -> IntensityService:
+        return IntensityService(repo)
 
     @provide()
     async def game_service(

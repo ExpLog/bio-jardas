@@ -13,16 +13,16 @@ from bio_jardas import emojis
 from bio_jardas.cogs import BaseCog
 from bio_jardas.dependency_injection import cog_inject
 from bio_jardas.domains.config.objects import ReplyIntensityEnum
-from bio_jardas.domains.config.services import ConfigService
+from bio_jardas.domains.config.services import IntensityService
 from bio_jardas.domains.message.repositories import MessageGroupRepository
 from bio_jardas.observability import bind_exception_info
-from bio_jardas.shortcuts import author_id
+from bio_jardas.shortcuts import author_id, channel_id
 from bio_jardas.utils import probability_as_percentage, standard_embed
 
 logger = structlog.stdlib.get_logger()
 
 
-class ConfigCog(BaseCog):
+class IntensityCog(BaseCog):
     @command(help="|".join(ReplyIntensityEnum))
     @cooldown(1, 10, BucketType.channel)
     @cog_inject
@@ -31,13 +31,14 @@ class ConfigCog(BaseCog):
         context: Context[Bot],
         new_intensity: ReplyIntensityEnum,
         *,
-        config_service: FromDishka[ConfigService],
+        intensity_service: FromDishka[IntensityService],
     ) -> None:
         user_id = author_id(context)
-        await config_service.update_intensity(
-            ReplyIntensityEnum(new_intensity), user_id
+        current_channel_id = channel_id(context)
+        await intensity_service.update_intensity(
+            current_channel_id, ReplyIntensityEnum(new_intensity), user_id
         )
-        await logger.ainfo("Intensity updated")
+        await logger.ainfo("Intensity updated", channel_id=current_channel_id)
         await context.message.add_reaction(emojis.SUCCESS)
 
     @intensity.error
@@ -52,12 +53,13 @@ class ConfigCog(BaseCog):
         self,
         context: Context[Bot],
         *,
-        config_service: FromDishka[ConfigService],
+        intensity_service: FromDishka[IntensityService],
         group_repo: FromDishka[MessageGroupRepository],
     ):
-        intensity_config = await config_service.get_intensity()
+        current_channel_id = channel_id(context)
+        intensity_config = await intensity_service.get_intensity(current_channel_id)
         assigned_message_groups = await group_repo.get_assigned_message_groups(
-            context.channel.id
+            current_channel_id
         )
 
         embed = standard_embed("Status")

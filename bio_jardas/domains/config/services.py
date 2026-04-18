@@ -1,54 +1,43 @@
 import structlog
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm.attributes import flag_modified
 
-from bio_jardas.domains.config.models import Config
+from bio_jardas.domains.config.models import Intensity
 from bio_jardas.domains.config.objects import ReplyIntensityConfig, ReplyIntensityEnum
+from bio_jardas.domains.config.repositories import IntensityRepository
 
 logger = structlog.stdlib.get_logger()
 
-REPLY_INTENSITY_MAP = {
-    "sleep": ReplyIntensityEnum.SLEEPING,
-    "puny": ReplyIntensityEnum.PUNY,
-    "mild": ReplyIntensityEnum.MILD,
-    "normal": ReplyIntensityEnum.NORMAL,
-    "annoying": ReplyIntensityEnum.ANNOYING,
-    "intense": ReplyIntensityEnum.INTENSE,
-    "edgelord": ReplyIntensityEnum.EDGELORD,
-}
 
+class IntensityService:
+    def __init__(self, repo: IntensityRepository):
+        self.repo = repo
 
-class ConfigService:
-    def __init__(self, session: AsyncSession):
-        self.session = session
-
-    async def get_intensity(self) -> ReplyIntensityConfig:
-        # TODO: add some caching
-        query = select(Config).where(Config.name == "intensity")
-        config = await self.session.scalar(query)
-        if not config:
-            await logger.awarning("Config not found", config="intensity")
+    async def get_intensity(self, channel_id: int) -> ReplyIntensityConfig:
+        intensity_record = await self.repo.get_one_or_none(
+            Intensity.channel_snowflake_id == channel_id
+        )
+        if not intensity_record:
             return ReplyIntensityConfig()
-        return ReplyIntensityConfig(**config.data)
+        return ReplyIntensityConfig(
+            intensity=ReplyIntensityEnum(intensity_record.intensity)
+        )
 
     async def update_intensity(
-        self, reply_intensity: ReplyIntensityEnum, user_id: int
+        self, channel_id: int, reply_intensity: ReplyIntensityEnum, user_id: int
     ) -> None:
-        query = select(Config).where(Config.name == "intensity").with_for_update()
-        config = await self.session.scalar(query)
-        if config:
-            config.data["intensity"] = reply_intensity
-            config.updated_by = user_id
-            flag_modified(config, "data")
+        intensity_record = await self.repo.get_one_or_none(
+            Intensity.channel_snowflake_id == channel_id,
+            for_update=True,
+        )
+        if intensity_record:
+            intensity_record.intensity = reply_intensity
+            intensity_record.updated_by = user_id
+            await self.repo.session.flush()
             return
 
-        await logger.awarning("Config not found, creating new one.", config="intensity")
-        intensity_config = ReplyIntensityConfig(intensity=reply_intensity)
-        config = Config(
-            name="intensity",
-            data=intensity_config.model_dump(),
+        intensity_record = Intensity(
+            channel_snowflake_id=channel_id,
+            intensity=reply_intensity,
             created_by=user_id,
             updated_by=user_id,
         )
-        self.session.add(config)
+        await self.repo.add(intensity_record)

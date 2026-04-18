@@ -30,16 +30,21 @@ async def _engine():
 async def session(_engine) -> AsyncGenerator[AsyncSession, Any]:
     """
     Fixture that yields an AsyncSession and rolls back at the end.
-    Uses a transaction for each test to keep DB clean.
+    Uses a nested transaction for each test so database errors don't
+    abort the main transaction, avoiding SAWarnings during cleanup.
     """
     async with _engine.connect() as conn:
-        # Start a transaction
+        # Start the main transaction
         trans = await conn.begin()
 
         # Create a session bound to the connection
         session_factory = async_sessionmaker(conn, expire_on_commit=False)
         async with session_factory() as session:
+            # Start a nested transaction (savepoint)
+            # This allows tests to fail (e.g. IntegrityError) while keeping
+            # the main transaction valid for rolling back.
+            await session.begin_nested()
             yield session
 
-        # Roll back everything after the test
+        # Roll back the main transaction to keep the DB clean
         await trans.rollback()

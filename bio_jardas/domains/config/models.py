@@ -1,14 +1,15 @@
-from sqlalchemy.dialects.postgresql import JSONB
+import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 from bio_jardas.db.models import AuditBase
 
-__all__ = ["Config"]
+__all__ = ["Intensity"]
 
 
-# TODO: change name of table/class to bot_config
-class Config(AuditBase):
-    __tablename__ = "config"
+class Intensity(AuditBase):
+    __tablename__ = "intensity"
 
-    name: Mapped[str] = mapped_column(nullable=False, index=True)
-    data: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
+    channel_snowflake_id: Mapped[int] = mapped_column(
+        sa.BigInteger, nullable=False, unique=True, index=True
+    )
+    intensity: Mapped[str] = mapped_column(sa.String(100), nullable=False)
