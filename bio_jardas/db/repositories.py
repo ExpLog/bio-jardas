@@ -147,7 +147,8 @@ class CRUDRepository[T: Base]:
             query = query.options(*options)
         if for_update:
             query = query.with_for_update()
-        return await self.session.scalar(query)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
 
     async def get_many(
         self,

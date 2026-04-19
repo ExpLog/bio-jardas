@@ -109,6 +109,7 @@ Copy `.env.sample` to `.env` when starting fresh or when the sample is updated.
 * **High-fidelity**: never mock the database or swap in a different engine (like SQLite). Always use the project's real PostgreSQL instance from `docker-compose` (`make docker/up`).
 * **Isolation**: `tests/conftest.py` provides a session-scoped `_engine` fixture that runs Alembic migrations once, and a per-test `session` fixture that wraps each test in a transaction which rolls back at teardown. Use the `session` fixture to keep the database clean across tests.
 * **Execution**: always run tests via `make py/test` or `uv run -m pytest tests/` so module discovery works.
+* **Schema integrity**: for models with complex relationships (e.g., cascading deletes, foreign key constraints), always add explicit tests in `tests/db/test_schema_integrity.py` to ensure the database schema behaves as expected.
 * **Verification**: back new features with automated tests in `tests/` whenever possible. Manual verification in a development Discord server is still recommended for Cog-level interactions.
 
 ## ETL / Data seeding
@@ -131,7 +132,7 @@ Uses `cyclopts` and `pandas` (installed via the `etl` group).
 
 * **Tooling**: always prefer `uv run` and the project's `Makefile` targets. Never invoke `python`, `pip`, or `alembic` directly. Use `uv add` to manage dependencies.
 * **Domain structure**: when adding new features, follow the existing domain pattern in `bio_jardas/domains/<domain_name>/` described above.
-* **Standards**: all code must follow PEP8. NEVER use abbreviations for variables or symbols (e.g., use `channel_id` instead of `cid`). Avoid meaningless suffixes like `_val` or `_obj`. Run `make py/fmt` and `make py/lint` before submitting changes.
+* **Standards**: all code must follow PEP8. NEVER use abbreviations for variables or symbols (e.g., use `channel_id` instead of `cid`). Simple abbreviations are fine in list comprehensions (e.g., `score -> s` or `message_group_choice -> mgc`). Avoid meaningless suffixes like `_val` or `_obj`. Run `make py/fmt` and `make py/lint` before submitting changes.
 * **Migrations**: always use `make db/revision` for schema changes. Migration files are auto-formatted by a ruff post-write hook configured under `tool.alembic` in `pyproject.toml`.
 * **Error handling**: differentiate user-facing errors (which may be ignored or signaled via emoji) from internal errors in logs. Use `structlog` for internal logging and the `emojis` module for user feedback.
 * **Ruff**: `pyproject.toml` selects `ALL` lint rules with a curated ignore list. Run `make py/fmt` to autofix, `make py/lint` to verify.
