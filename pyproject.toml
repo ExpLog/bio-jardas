@@ -17,6 +17,7 @@ dependencies = [
     "structlog>=25.4.0",
     "unidecode>=1.4.0",
     "whenever>=0.9.3",
+    "whenever-sqlalchemy>=0.1.0",
 ]
 
 [dependency-groups]

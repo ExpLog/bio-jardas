@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
+from whenever import Instant
 
 from bio_jardas.domains.game.models import Score
 from bio_jardas.domains.game.repositories import ScoreRepository
@@ -21,6 +22,10 @@ async def test_score_get_or_create_new(score_repo: ScoreRepository) -> None:
     assert score.current == 0
     assert score.highest == 0
     assert score.id is not None
+
+    # Verify whenever.Instant integration
+    assert isinstance(score.created_at, Instant)
+    assert isinstance(score.updated_at, Instant)
 
 
 async def test_score_get_or_create_existing(score_repo: ScoreRepository) -> None:

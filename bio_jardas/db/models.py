@@ -1,13 +1,12 @@
 import sqlalchemy as sa
 from sqlalchemy import BigInteger, Identity
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry
-from whenever import ZonedDateTime
-
-from bio_jardas.db.types import ZonedDateTimeType
+from whenever import Instant
+from whenever_sqlalchemy import type_annotation_map as whenever_type_map
 
 metadata = sa.MetaData()
 mapper_registry = registry()
-mapper_registry.type_annotation_map[ZonedDateTime] = ZonedDateTimeType()
+mapper_registry.type_annotation_map.update(whenever_type_map)
 
 
 class Base(DeclarativeBase):
@@ -19,10 +18,10 @@ class Base(DeclarativeBase):
 
 
 class TimestampMixin:
-    created_at: Mapped[ZonedDateTime] = mapped_column(
+    created_at: Mapped[Instant] = mapped_column(
         nullable=False, server_default=sa.func.now()
     )
-    updated_at: Mapped[ZonedDateTime] = mapped_column(
+    updated_at: Mapped[Instant] = mapped_column(
         nullable=False,
         server_default=sa.func.now(),
         onupdate=sa.func.now(),

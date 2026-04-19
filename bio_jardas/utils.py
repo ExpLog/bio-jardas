@@ -3,7 +3,7 @@ from collections.abc import Sequence
 import inflect
 from disnake import Color, Embed
 from disnake.ext.commands import Context
-from whenever import ZonedDateTime
+from whenever import Instant
 
 INFLECT = inflect.engine()
 
@@ -19,7 +19,7 @@ def probability_as_percentage(probability: float) -> str:
 def standard_embed(
     title: str, description: str | None = None, color: Color | None = None
 ) -> Embed:
-    now = ZonedDateTime.now_in_system_tz()
+    now = Instant.now()
     return Embed(
         title=title,
         description=description,

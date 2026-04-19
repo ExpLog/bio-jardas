@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import sqlalchemy as sa
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, validates
-from whenever import ZonedDateTime
+from whenever import Instant
 
 from bio_jardas.db.models import Base, TimestampMixin
 from bio_jardas.domains.time_gate.enums import TimeGateNameEnum
@@ -19,12 +19,10 @@ class TimeGate(Base, TimestampMixin):
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     user_snowflake_id: Mapped[int] = mapped_column(sa.BigInteger, nullable=False)
-    resets_at: Mapped[ZonedDateTime] = mapped_column(
-        nullable=False, default=ZonedDateTime.now_in_system_tz
-    )
+    resets_at: Mapped[Instant] = mapped_column(nullable=False, default=Instant.now)
 
-    def is_locked(self, now: ZonedDateTime | None = None) -> bool:
-        now = now or ZonedDateTime.now_in_system_tz()
+    def is_locked(self, now: Instant | None = None) -> bool:
+        now = now or Instant.now()
         return now < self.resets_at
 
     @property
@@ -39,7 +37,7 @@ class TimeGate(Base, TimestampMixin):
 
     @contextmanager
     def lock(self):
-        now = ZonedDateTime.now_in_system_tz()
+        now = Instant.now()
         if self.is_locked(now):
             raise TimeGatedError(self.name, self.user_snowflake_id)
 
