@@ -17,7 +17,7 @@ Commands use the `$` prefix.
 
 ### General Commands
 * `$status`: Shows the bot's current status, including intensity and assigned message groups for the current channel.
-* `$intensity <value>`: Sets the bot's response intensity. Possible values: `off`, `low`, `medium`, `high`, `extreme`, `insane`. (Cooldown: 1 per 10s per channel).
+* `$intensity <value>`: Sets the bot's response intensity for the current channel. Possible values: `sleeping`, `puny`, `mild`, `normal`, `annoying`, `intense`, `edgelord`. (Cooldown: 1 per 10s per channel).
 * `$huggies`: Sends a hug to the user.
 * `$fortune_teller`: Tells a fortune (limited to 1 per week).
 * `$vocabulary <text>`: Adds `<text>` to the user-added vocabulary.
@@ -40,12 +40,12 @@ Commands use the `$` prefix.
 * `$reply show user [member]`: Shows assigned message groups and their probabilities for a user.
 * `$reply channel enable`: Enables replies for the current channel.
 * `$reply channel disable`: Disables replies for the current channel.
-* `$reply channel add <group_name> [weight] [independent_roll_probability]`: Adds a message group to the current channel.
-* `$reply channel remove <group_names...>`: Removes message groups from the current channel.
+* `$reply channel add <group_name> [weight] [independent_roll_probability]`: Adds a message group to the current channel. Aliases: `assign`, `+`.
+* `$reply channel remove <group_names...>`: Removes message groups from the current channel. Aliases: `rm`, `-`.
 * `$reply channel clear`: Clears all message groups from the current channel.
 * `$reply channel apply-defaults`: Applies default message groups to the current channel.
-* `$reply user add <member> <group_name> [weight] [independent_roll_probability]`: Adds a message group to a user.
-* `$reply user remove <member> <group_names...>`: Removes message groups from a user.
+* `$reply user add <member> <group_name> [weight] [independent_roll_probability]`: Adds a message group to a user. Aliases: `assign`, `+`.
+* `$reply user remove <member> <group_names...>`: Removes message groups from a user. Aliases: `rm`, `-`.
 * `$reply user clear <member>`: Clears all message groups from a user.
 
 #### Vocabulary & Message Groups
