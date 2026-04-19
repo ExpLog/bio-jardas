@@ -138,7 +138,7 @@ class ReplyCog(BaseCog):
         *,
         message_service: FromDishka[MessageService],
     ) -> None:
-        target = member if member else context.author
+        target = member or context.author
         probabilities = await message_service.probabilities(target.id)
         embed = standard_embed("User Message Groups", description=target.name)
         for probability in probabilities:

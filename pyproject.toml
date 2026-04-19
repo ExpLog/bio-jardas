@@ -37,12 +37,23 @@ etl = [
 module-root = ""
 
 [tool.ruff]
-lint.select = ["ALL"]  # TODO: change this
-lint.ignore = ["D", "COM", "ANN", "SIM", "EM", "TRY", "TD", "FIX", "S311", "RUF012", "FBT", "PLR0913", "B904"]
+lint.select = [
+    "E", "W",  # pycodestyle
+    "F",       # Pyflakes
+    "I",       # isort
+    "B",       # flake8-bugbear
+    "UP",      # pyupgrade
+    "N",       # pep8-naming
+    "RUF",     # Ruff-specific
+]
+lint.ignore = [
+    "RUF012",  # Mutable class attributes (annoying with SQLAlchemy/Dishka)
+    "B904",    # Within an except clause, raise from error or None
+]
 exclude = [".ipython_startup.py"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "PLR2004"]
+"tests/*" = ["S101"]  # S101 is part of RUF, we need it for asserts in tests
 
 [tool.alembic]
 script_location = "%(here)s/migrations"

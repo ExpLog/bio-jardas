@@ -44,7 +44,6 @@ class SchedulerProvider(Provider):
 class BotProvider(Provider):
     @provide(scope=Scope.APP)
     async def bot(self, scheduler: AsyncIOScheduler) -> BioJardas:
-        # ruff: noqa: PLC0415
         from bio_jardas.domains.config.cogs import IntensityCog
         from bio_jardas.domains.game.cogs import GameCog
         from bio_jardas.domains.message.cogs.fortune_teller import FortuneTellerCog

@@ -24,7 +24,7 @@ if config.config_file_name is not None:
 target_metadata = metadata
 
 
-def include_object(obj, name, type_, reflected, compare_to):  # noqa: ARG001
+def include_object(obj, name, type_, reflected, compare_to):
     if type_ == "table" and name in {"apscheduler_jobs"}:
         return False
 

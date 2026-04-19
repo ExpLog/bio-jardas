@@ -26,7 +26,7 @@ async def remove_shadow_ban(
         player = guild.get_member(player_snowflake_id)
         shadow_role = guild.get_role(shadow_role_snowflake_id)
         member_role = guild.get_role(member_role_snowflake_id)
-    except Exception:  # noqa: BLE001
+    except Exception:
         await logger.aexception("Failed to fetch data when removing shadow ban")
         return
 
