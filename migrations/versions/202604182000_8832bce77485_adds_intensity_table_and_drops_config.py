@@ -12,8 +12,6 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-import bio_jardas
-
 # revision identifiers, used by Alembic.
 revision: str = "8832bce77485"
 down_revision: str | Sequence[str] | None = "dda3c765cd72"
@@ -43,13 +41,13 @@ def upgrade() -> None:
         sa.Column("id", sa.BigInteger(), sa.Identity(always=True), nullable=False),
         sa.Column(
             "created_at",
-            bio_jardas.db.types.ZonedDateTimeType(timezone=True),
+            sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
-            bio_jardas.db.types.ZonedDateTimeType(timezone=True),
+            sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
         ),
