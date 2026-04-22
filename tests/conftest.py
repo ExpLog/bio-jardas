@@ -1,12 +1,16 @@
 import asyncio
 from collections.abc import AsyncGenerator
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 from alembic import command
 from alembic.config import Config
+from dishka import AsyncContainer, Provider, Scope, make_async_container, provide
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from bio_jardas.bot import BioJardas
+from bio_jardas.dependency_injection import RepositoryProvider, ServiceProvider
 from bio_jardas.settings import SETTINGS
 
 
@@ -48,3 +52,24 @@ async def session(_engine) -> AsyncGenerator[AsyncSession, Any]:
 
         # Roll back the main transaction to keep the DB clean
         await trans.rollback()
+
+
+@pytest.fixture
+async def di_container(session: AsyncSession) -> AsyncGenerator[AsyncContainer]:
+    class TestProvider(Provider):
+        @provide(scope=Scope.REQUEST)
+        def session(self) -> AsyncSession:
+            return session
+
+        @provide(scope=Scope.REQUEST)
+        def bot(self) -> BioJardas:
+            return MagicMock(BioJardas)
+
+    container = make_async_container(
+        TestProvider(),
+        RepositoryProvider(),
+        ServiceProvider(),
+    )
+    async with container() as request_container:
+        yield request_container
+    await container.close()

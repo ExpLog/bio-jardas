@@ -18,6 +18,10 @@ Bio Jardas is a Discord bot for the Aveiro Discord community.
 
 All tasks go through the `Makefile` (includes in `makes/*.mk`). Never invoke `python`, `pip`, `pytest`, `ruff`, or `alembic` directly.
 
+Discord:
+
+* The bot uses the prefix `$`. Commands should be invoked as `$command` (e.g., `$status`).
+
 Python:
 
 * `make py/install`: Sync dependencies (`uv lock --check && uv sync --frozen --all-groups`).
