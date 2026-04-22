@@ -1,8 +1,10 @@
 import pytest
-from sqlalchemy.exc import MultipleResultsFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bio_jardas.db.exceptions import EntityNotFoundError
+from bio_jardas.db.exceptions import (
+    EntityMultipleResultsFoundError,
+    EntityNotFoundError,
+)
 from bio_jardas.domains.game.models import Score
 from bio_jardas.domains.game.repositories import ScoreRepository
 
@@ -161,7 +163,7 @@ async def test_crud_get_one_multiple_results(score_repo: ScoreRepository) -> Non
     ]
     await score_repo.add_many(scores)
 
-    with pytest.raises(MultipleResultsFound):
+    with pytest.raises(EntityMultipleResultsFoundError):
         await score_repo.get_one(Score.user_snowflake_id == 1)
 
 
@@ -174,5 +176,5 @@ async def test_crud_get_one_or_none_multiple_results(
     ]
     await score_repo.add_many(scores)
 
-    with pytest.raises(MultipleResultsFound):
+    with pytest.raises(EntityMultipleResultsFoundError):
         await score_repo.get_one_or_none(Score.user_snowflake_id == 1)

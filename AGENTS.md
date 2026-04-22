@@ -45,6 +45,10 @@ Dependencies:
 * `uv add <package>`: Add a runtime dependency.
 * `uv add --group <group> <package>`: Add to a specific group (see `dev`, `etl` in `pyproject.toml`).
 
+Docker:
+
+* Instructions for building and pushing the Docker image to the `tower.local` registry are in the `README.md`.
+
 ## Architecture
 
 ### Layered DDD per domain

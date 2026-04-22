@@ -1,10 +1,14 @@
 from collections.abc import Sequence
 
 from sqlalchemy import ColumnElement, ColumnExpressionArgument, delete, exists, select
+from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
 
-from bio_jardas.db.exceptions import EntityNotFoundError
+from bio_jardas.db.exceptions import (
+    EntityMultipleResultsFoundError,
+    EntityNotFoundError,
+)
 from bio_jardas.db.models import Base
 
 
@@ -24,10 +28,6 @@ class CRUDRepository[T: Base]:
         flush = flush if flush is not None else self._flush
         if flush:
             await self.session.flush()
-
-    def _check_not_found(self, instance: T | None, identifier: str) -> None:
-        if not instance:
-            raise EntityNotFoundError(self.model_type, identifier)
 
     async def add(self, entity: T, flush: bool | None = None) -> T:
         """
@@ -103,10 +103,14 @@ class CRUDRepository[T: Base]:
         :param for_update: Lock database rows for update.
         :return: Model instance. Raises EntityNotFoundError.
         """
-        instance = await self.get_one_or_none(
-            self.model_type.id == instance_id, options=options, for_update=for_update
+        instance = await self.session.get(
+            self.model_type,
+            instance_id,
+            options=options,
+            with_for_update=for_update,
         )
-        self._check_not_found(instance, f"id={instance_id}")
+        if not instance:
+            raise EntityNotFoundError(self.model_type, f"id={instance_id}")
         return instance
 
     async def get_one(
@@ -120,14 +124,22 @@ class CRUDRepository[T: Base]:
         :param filters: List of model filters.
         :param options: List of select.options, such as joinedload.
         :param for_update: Lock database rows for update.
-        :return: Model instance. Raises EntityNotFoundError.
+        :return: Model instance. Raises EntityNotFoundError or
+            EntityMultipleResultsFoundError.
         """
-        instance = await self.get_one_or_none(
-            *filters, options=options, for_update=for_update
-        )
-        # TODO: improve the identifier
-        self._check_not_found(instance, "get_one")
-        return instance
+        query = select(self.model_type).where(*filters)
+        if options:
+            query = query.options(*options)
+        if for_update:
+            query = query.with_for_update()
+
+        try:
+            result = await self.session.execute(query)
+            return result.scalar_one()
+        except NoResultFound:
+            raise EntityNotFoundError(self.model_type, "get_one") from None
+        except MultipleResultsFound:
+            raise EntityMultipleResultsFoundError(self.model_type, "get_one") from None
 
     async def get_one_or_none(
         self,
@@ -140,15 +152,21 @@ class CRUDRepository[T: Base]:
         :param filters: List of model filters.
         :param options: List of select.options, such as joinedload.
         :param for_update: Lock database rows for update.
-        :return: Model instance or None. Raises EntityNotFoundError.
+        :return: Model instance or None. Raises EntityMultipleResultsFoundError.
         """
         query = select(self.model_type).where(*filters)
         if options:
             query = query.options(*options)
         if for_update:
             query = query.with_for_update()
-        result = await self.session.execute(query)
-        return result.scalar_one_or_none()
+
+        try:
+            result = await self.session.execute(query)
+            return result.scalar_one_or_none()
+        except MultipleResultsFound:
+            raise EntityMultipleResultsFoundError(
+                self.model_type, "get_one_or_none"
+            ) from None
 
     async def get_many(
         self,

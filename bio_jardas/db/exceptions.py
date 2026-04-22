@@ -15,5 +15,14 @@ class EntityNotFoundError(DatabaseError):
         super().__init__(f"{self.entity_type} '{self.entity_identifier}' not found")
 
 
+class EntityMultipleResultsFoundError(DatabaseError):
+    def __init__(self, entity_type: type[Base], entity_identifier: Any):
+        self.entity_type = entity_type.__name__
+        self.entity_identifier = entity_identifier
+        super().__init__(
+            f"Multiple results found for {self.entity_type} '{self.entity_identifier}'"
+        )
+
+
 class UpsertForbiddenError(DatabaseError):
     pass
