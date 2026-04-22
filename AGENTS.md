@@ -47,7 +47,7 @@ Dependencies:
 
 Docker:
 
-* Instructions for building and pushing the Docker image to the `tower.local` registry are in the `README.md`.
+* When asked to "build the image and push", follow the instructions in the `README.md` to build and push the image to the `tower.local` registry, choosing the section that matches your current operating system.
 
 ## Architecture
 
@@ -96,7 +96,7 @@ One-way: `Cog -> Service -> Repository -> AsyncSession`. All wiring lives in `bi
 ### Cog conventions
 
 * Inherit from `BaseCog` (`bio_jardas/cogs.py`); it exposes `self.bot` and `self.container` (the `dishka` container).
-* For `on_message` listeners, wrap the handler with `@skip_bots_and_commands` (from `bio_jardas/decorators.py`) so bot messages and valid bot commands are ignored.
+* For `on_message` listeners, wrap the handler with `@skip_bots_and_commands` (from `bio_jardas.decorators.py`) so bot messages and valid bot commands are ignored.
 * Use the `emojis` module for consistent user-facing feedback on success and failure.
 
 ## Configuration

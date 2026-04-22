@@ -6,6 +6,8 @@ Discord bot for the Aveiro Discord community.
 
 ### Mac
 
+This is useful for running the bot locally.
+
 To build:
 
 ```bash
@@ -48,6 +50,16 @@ skopeo copy \
   --dest-tls-verify=false \
   docker-daemon:bio-jardas:latest \
   docker://tower.local:5000/bio-jardas:latest
+```
+
+### Linux (amd64)
+
+This builds and pushes to the registry in `tower.local`. Note that you need to set the
+docker daemon to allow insecure registries.
+
+```bash
+docker build -t tower.local:5000/bio-jardas:latest .
+docker push tower.local:5000/bio-jardas:latest
 ```
 
 ## TODO
