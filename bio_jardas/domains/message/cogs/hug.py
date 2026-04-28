@@ -1,6 +1,6 @@
 import structlog
 from dishka import FromDishka
-from disnake import Member  # Ensure Member is imported
+from disnake import Member
 from disnake.ext.commands import Context, command
 
 from bio_jardas.cogs import BaseCog
