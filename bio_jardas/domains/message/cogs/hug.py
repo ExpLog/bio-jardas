@@ -1,5 +1,6 @@
 import structlog
 from dishka import FromDishka
+from disnake import Member
 from disnake.ext.commands import Context, command
 
 from bio_jardas.cogs import BaseCog
@@ -26,3 +27,25 @@ class HugCog(BaseCog):
         )
         await context.channel.send(f"{context.author.mention}, this is for you")
         await context.channel.send(reply.text)
+
+    @command(name="send_hugs")
+    @cog_inject
+    async def send_hugs(
+        self,
+        context: Context,
+        member: Member | None = None,
+        *,
+        message_service: FromDishka[MessageService],
+    ):
+        target = member if member else context.author
+        reply = await message_service.random_message_from_group("hug")
+        await logger.ainfo(
+            "Sent hug",
+            target_user_id=target.id,
+            target_user_name=target.name,
+            message_group_id=reply.group_id,
+            message_id=reply.id,
+        )
+        await context.channel.send(
+            f"{target.mention}, {reply.interpolate_mention(context.author.mention)}"
+        )
