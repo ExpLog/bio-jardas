@@ -210,7 +210,7 @@ class ReplyCog(BaseCog):
         *group_names: str,
         message_service: FromDishka[MessageService],
     ) -> None:
-        if not _ensure_group_names(context, group_names):
+        if not await _ensure_group_names(context, group_names):
             return
         deleted_count = await message_service.delete_message_group_choices(
             context.channel.id, group_names
@@ -308,7 +308,7 @@ class ReplyCog(BaseCog):
         *group_names: str,
         message_service: FromDishka[MessageService],
     ) -> None:
-        if not _ensure_group_names(context, group_names):
+        if not await _ensure_group_names(context, group_names):
             return
         deleted_count = await message_service.delete_message_group_choices(
             member.id, group_names

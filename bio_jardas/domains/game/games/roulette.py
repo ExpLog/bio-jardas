@@ -43,7 +43,7 @@ class RouletteGame(Game[ScoreResult], ABC):
         return ScoreResult(RouletteResult.DEAD, score)
 
     @abstractmethod
-    async def _is_safe(self):
+    def _is_safe(self) -> bool:
         raise NotImplementedError
 
     @abstractmethod
