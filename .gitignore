@@ -23,4 +23,5 @@ etl/data
 # tools
 .ruff_cache
 .mypy_cache
+.coverage
 .antigravitycli
